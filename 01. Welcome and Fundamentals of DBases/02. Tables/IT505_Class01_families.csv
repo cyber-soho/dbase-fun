@@ -1,0 +1,6 @@
+﻿Family,Data model,Typical question,Open-source products of this course,Class
+1 Flat and file-based,"One table in one file (CSV); or a complete DBMS inside the program, the database in one file",Exchange one table; analyse it on one computer,CSV files · SQLite (public domain) · DuckDB (MIT licence),Class 2
+2 Relational,"Tables of rows and columns, linked by primary and foreign keys; constraints; transactions",Many users change related data that must stay correct,PostgreSQL (PostgreSQL Licence) · MariaDB (GPL 2.0),Classes 3 to 10
+3 Non-relational,Documents (JSON) · key-value pairs · wide columns · graphs of nodes and relationships,The whole record · the value for a key · very many writes · paths through relationships,"Apache CouchDB, FerretDB · Valkey · Apache Cassandra · Neo4j Community, Apache AGE",Class 11
+4 Big data,Columnar files; one job split over many machines,Summaries over more data than one machine handles,Apache Parquet · Apache Spark · DuckDB on one laptop,Class 12
+5 Blockchain,"A ledger of blocks, each storing the hash of the previous one; many independent copies",A shared record that no single organisation can alter,"Bitcoin Core, Ethereum (public) · Hyperledger Fabric (known participants)",Class 12

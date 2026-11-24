@@ -1,0 +1,7 @@
+﻿Clause,Answers the question,Example on orders_flat,Logical step,Note
+FROM,which table?,FROM orders_flat,1,in DuckDB also a file: FROM 'file.csv'
+WHERE,which rows?,WHERE lower(city) = 'madrid',2,text comparison is exact; = NULL is never true
+SELECT,which columns and calculations?,"SELECT order_id, unit_price * quantity AS line_total",3,SELECT * = all columns; AS creates an alias
+DISTINCT,remove duplicate result rows?,SELECT DISTINCT payment_method,4,applies to the whole result row; NULLs count as one value
+ORDER BY,in what order?,ORDER BY line_total DESC,5,ASC is the default; may use the alias
+LIMIT,how many rows?,LIMIT 3,6,SQL Server: SELECT TOP 3 …; standard: FETCH FIRST 3 ROWS ONLY

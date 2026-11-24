@@ -1,0 +1,8 @@
+﻿Question,SQL (DuckDB),Rows,Reading
+"Q1a Saturday, exact text",WHERE order_date = '2026-11-21',7,one Saturday line is missed
+"Q1b Saturday, both spellings","WHERE order_date IN ('2026-11-21', '21/11/2026')",8,the second date format hid M505-1042
+"Q2 Madrid, any spelling",WHERE lower(city) = 'madrid' ORDER BY order_id,8,city = 'Madrid' finds only 6
+Q3 Top 3 lines by value,"round(unit_price * quantity, 2) AS line_total … ORDER BY line_total DESC LIMIT 3",3,"saffron 22.00, turrón 20.70, olive oil 19.60"
+Q4 Payment methods,SELECT DISTINCT payment_method … ORDER BY payment_method,5,four methods and one NULL (M505-1046)
+"Q5a No quantity, wrong test",WHERE quantity = NULL,0,= NULL is never true
+"Q5b No quantity, correct test",WHERE quantity IS NULL,1,"M505-1045, chorizo 200 g"

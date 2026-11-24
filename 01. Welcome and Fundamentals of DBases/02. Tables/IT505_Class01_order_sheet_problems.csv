@@ -1,0 +1,4 @@
+﻿Problem,Row,Effect on the answer,Term of Lesson 2,Rule of the DBMS
+A duplicated row,6 (a copy of row 3),Getafe shows 24.80 € instead of 17.30 €,Data redundancy; no enforced rule,"PRIMARY KEY (order_id, product)"
+One city typed in two ways,4 ('MADRID'),Madrid is split into two groups: 39.10 € and 6.90 €,Data inconsistency,"CHECK (city IN ('Madrid', 'Getafe', 'Alcobendas'))"
+An empty quantity,7,5.40 € × nothing counts as 0: Madrid loses 10.80 €,No enforced rule,NOT NULL on quantity

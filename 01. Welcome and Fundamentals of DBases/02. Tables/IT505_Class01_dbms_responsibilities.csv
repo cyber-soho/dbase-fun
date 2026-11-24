@@ -1,0 +1,7 @@
+﻿Responsibility,What the DBMS guarantees
+Persistence,A confirmed change is on durable storage and survives a closed program or a power failure
+Data integrity,Declared constraints are checked at every insertion and change; a row that breaks one is refused
+Concurrency control,Many users work at the same time; no change is lost and no half-finished change is read
+Security,Each user is identified and may carry out only the operations that have been granted
+Backup and recovery,"The database can be copied, and restored to a correct state after a failure"
+Query language,"The user states which data are wanted and the DBMS works out how to retrieve them (SQL, ISO/IEC 9075)"

@@ -1,0 +1,8 @@
+﻿Tool,Role in the course,Current version,Licence,Official address
+DBeaver Community,"The application through which you send SQL to SQLite, DuckDB and PostgreSQL",26.2.5 (15 November 2026),Apache 2.0,https://dbeaver.io/download/
+PostgreSQL,The relational DBMS of the course,18.7 (12 November 2026) — recommended this week; 19.0 was released on 19 November 2026,PostgreSQL Licence,https://www.postgresql.org/download/
+SQLite,"A file-based DBMS, built for many small reads and writes (Class 2)",3.54.1 (16 October 2026),Public domain,https://sqlite.org/
+DuckDB,"A file-based DBMS, built for analysis; reads CSV, JSON and Parquet files directly (Class 2)",2.0.0 (October 2026),MIT licence,https://duckdb.org/
+DuckDB in the browser,Fallback when you cannot install software,runs in the browser,MIT licence,https://shell.duckdb.org
+SQLite in the browser,Fallback when you cannot install software,runs in the browser,Public domain,https://sqlite.org/fiddle/
+PostgreSQL in the browser (PGlite),Fallback when you cannot install software,runs in the browser,Apache 2.0,https://pglite.dev/repl/

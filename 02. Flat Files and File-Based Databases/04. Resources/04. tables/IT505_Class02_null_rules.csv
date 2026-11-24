@@ -1,0 +1,8 @@
+﻿Expression,DuckDB 2.0,SQLite 3.5x,PostgreSQL,Why
+5.40 * NULL,NULL,NULL,NULL,arithmetic with an unknown value is unknown
+WHERE quantity = NULL,0 rows,0 rows,0 rows,"comparison with NULL is unknown, never true"
+WHERE quantity IS NULL,rows with no quantity,rows with no quantity,rows with no quantity,the correct test
+SELECT DISTINCT on a column with NULLs,one NULL row,one NULL row,one NULL row,DISTINCT treats NULLs as equal
+ORDER BY x ASC,NULLs last,NULLs first,NULLs last,default null order differs by product
+ORDER BY x DESC,NULLs last,NULLs last,NULLs first,write NULLS FIRST / NULLS LAST to decide
+7 / 2,3.5 (7 // 2 = 3),3,3,integer division differs by product

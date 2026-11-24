@@ -1,0 +1,6 @@
+﻿Problem,What happens,At Mercadillo 505,What the database approach does
+Data redundancy,The same fact is stored in more than one place,A customer's city in the orders file and in the customers file,Each fact is stored once and referred to by a key
+Data inconsistency,The copies stop agreeing,"'Madrid' in one row, 'MADRID' in another",Integrity constraints refuse a value that breaks the declared rule
+Program-data dependence,The description of the data is written inside each program or formula,One new column: every formula that reads the file must be changed,"Program-data independence: the structure is described once, in the database"
+Limited data sharing,Each file has one owner; simultaneous saves overwrite each other,Two assistants save the same sheet at the same moment,"Concurrency control and security: many users, each with granted rights"
+No enforced rules,Nothing prevents an impossible value,"An empty quantity, a negative price, a duplicated row","NOT NULL, CHECK, UNIQUE and key constraints, checked at every change"

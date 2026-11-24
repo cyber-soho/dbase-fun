@@ -1,0 +1,11 @@
+﻿#,Problem,Where,How it was found,Term (Lesson 1),Decision for Step 1
+1,Malformed line: product name without quotes → 14 fields,line 11,csv module count; DuckDB reject_errors,malformed line,keep the evidence (store_rejects) and report; repair in a copy if needed
+2,"City typed in three ways: Madrid, MADRID, madrid","lines 4, 6 and others",SELECT DISTINCT city,data inconsistency,report now; clean in Step 3
+3,Two date formats: 2026-11-21 and 21/11/2026,lines 4 and 12,DESCRIBE: order_date is VARCHAR,type inference,keep as text; convert in Step 3
+4,Empty quantity,M505-1045 (line 7),SUMMARIZE null_percentage; WHERE quantity IS NULL,missing value (NULL),keep as NULL; decide in Step 3
+5,Empty payment method,M505-1046 (line 8),SELECT DISTINCT payment_method,missing value (NULL),report
+6,Empty city,M505-1047 (line 9),SUMMARIZE null_percentage,missing value (NULL),report
+7,The same order line twice,line 10 repeats line 3,comparing lines; later SELECT DISTINCT,data redundancy,report the count; remove when loading clean tables
+8,One customer typed two ways: Lucía Fernández / LUCÍA FERNÁNDEZ,lines 2 and 12,"same e-mail, different names",data inconsistency,identify customers by e-mail (Step 2)
+9,"Name written “Surname, Name”: Ruiz, Marta",line 5,reading the values,data inconsistency,report
+10,"Customer facts repeated on every line (e-mail, city, referrer)",all lines,reading the structure,data redundancy,separate tables in Step 2 (Class 3)

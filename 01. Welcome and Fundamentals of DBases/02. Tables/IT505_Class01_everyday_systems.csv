@@ -1,0 +1,8 @@
+﻿System,Deciding property,Family,Reason
+Monthly export for the accountant,"One table, one reader, no simultaneous writers",1 Flat and file-based,"one table, one reader, no simultaneous writers"
+A bank's account transfers,Identical fields; strict transactions,2 Relational,identical fields and strict transactions under many writers
+A web shop's shopping cart,Main question: by key,3 Non-relational: key-value,the main question is 'by key'
+A product catalogue,Main question: whole record,3 Non-relational: document,the main question is 'whole record'
+A social network,Main question: path,3 Non-relational: graph,the main question is 'path'
+A sensor feed,Volume or speed of arrival,4 Big data,the volume or the speed of arrival exceeds one machine
+A land registry shared by several authorities,Independent organisations; a history that must not be altered,5 Blockchain,independent organisations share a history that must not be altered

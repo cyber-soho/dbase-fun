@@ -1,0 +1,424 @@
+<!-- The document type declaration switches the browser to standards mode, so that layout and scripts behave the same everywhere. -->
+<!DOCTYPE html>
+<!-- The root element; lang="en" tells screen readers and spell-checkers that the text is English. -->
+<html lang="en">
+<!-- The head holds the metadata, the title and the styles; nothing in it is drawn on the page. -->
+<head>
+<!-- UTF-8 is declared so that accents, the euro sign and arrows are displayed correctly. -->
+<meta charset="utf-8">
+<!-- The viewport rule lets the page fit the width of a phone or a tablet. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The title is shown on the browser tab and names the example. -->
+<title>IT 505 - Class 1 - Example 2 - Order sheet and integrity rules runner</title>
+<!-- All styles are written here; the page loads nothing from the network, so it also works offline. -->
+<style>
+/* The colours of the Cyber.SoHo light theme: warm paper, deep teal, rust for warnings, amber for the current step. */
+:root{--paper:#FAF7F2;--ink:#1C1917;--teal:#0E7C7B;--teal-l:#E4F2F1;--rust:#B5440C;--rust-l:#FBE9E9;--amber-l:#FFF3CD;--line:#E7E2D8;--muted:#6B6560;--ok:#0d8a6a;}
+/* The page uses the fonts already installed on the computer, the paper colour, and a small margin so that it fits inside the lecture module. */
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--paper);color:var(--ink);margin:0;padding:12px;font-size:14px;}
+/* The header places the title on the left and the buttons on the right, and wraps on a narrow screen. */
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px;}
+/* The title is small and teal, so that the example is recognised as part of the lecture module. */
+h1{font-size:16px;margin:0;color:var(--teal);}
+/* Every button has the same look: teal border, rounded corners, and a pointer cursor to show that it can be clicked. */
+button{border:1px solid var(--teal);background:#fff;color:var(--teal);border-radius:6px;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px;margin:2px 0;}
+/* The Start / Pause button is filled with teal, because it is the button used most. */
+button.primary{background:var(--teal);color:#fff;}
+/* A button that cannot be used at the moment is shown faded. */
+button:disabled{opacity:.45;cursor:not-allowed;}
+/* The status line under the header says how many steps have run and whether the runner is running or paused. */
+#status{font-size:12.5px;color:var(--muted);margin:2px 0 10px;}
+/* The main area has two columns: the listing on the left and the visualisation on the right. */
+main{display:grid;grid-template-columns:1fr 1.15fr;gap:12px;}
+/* On a screen narrower than 900 pixels the two columns are placed one under the other. */
+@media (max-width:900px){main{grid-template-columns:1fr;}}
+/* Each panel is a white card with a thin border. */
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0;}
+/* The execution window spans both columns, so that long result lines stay readable. */
+.card.wide{grid-column:1 / -1;}
+/* The heading of a panel is a small label in capital letters. */
+.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;}
+/* The listing is a scrolling box with a monospace font, so that code lines keep their alignment. */
+#listing{max-height:520px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;line-height:1.5;border:1px solid var(--line);border-radius:8px;background:#fffdf9;}
+/* One line of the listing: its number on the left, its text on the right; long lines wrap instead of being cut. */
+.ln{display:flex;gap:8px;padding:0 8px;white-space:pre-wrap;word-break:break-word;}
+/* The line number is grey and is not selected when the text is copied with the mouse. */
+.ln i{color:#b3aca2;font-style:normal;min-width:22px;text-align:right;user-select:none;flex:none;}
+/* A comment line of the listing is written in muted italics, to separate the explanation from the code. */
+.ln.cm span{color:var(--muted);font-style:italic;}
+/* The lines of the statement that is being executed get an amber background and a rust bar on the left. */
+.ln.cur{background:var(--amber-l);box-shadow:inset 3px 0 0 var(--rust);}
+/* The drawing scales with the width of its panel and keeps its proportions. */
+svg{width:100%;height:auto;display:block;}
+/* The execution window is a scrolling box in a monospace font: one step, one or more lines. */
+#log{height:230px;overflow:auto;background:#fffdf9;border:1px solid var(--line);border-radius:8px;padding:8px;font-family:ui-monospace,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;}
+/* Four kinds of line in the execution window: the statement (bold), its result (teal), an error (rust), a reading in plain words (ink). */
+.st{font-weight:700;} .rs{color:var(--teal);} .er{color:var(--rust);font-weight:600;} .rd{color:var(--ink);font-style:italic;}
+/* The small table under the drawing lists results that stay on screen after the run. */
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+/* Its cells have a thin line underneath and a little padding. */
+td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top;}
+/* The hidden text area is only used to copy text on browsers that do not allow the clipboard interface. */
+#copybuf{position:absolute;left:-9999px;top:-9999px;}
+</style>
+</head>
+<!-- The body holds everything that is drawn: the header with the buttons, the status line, the three panels. -->
+<body>
+<!-- The header: the title of the example and the controls asked for in the lecture (copy, start / pause, restart, downloads). -->
+<header>
+<!-- The title names the example and the lesson it belongs to. -->
+<h1>Example 2 — Order sheet and integrity rules runner (Lesson 2)</h1>
+<!-- The group of buttons; each button calls one function of the script at the end of the page. -->
+<div>
+<!-- Start / Pause: one button that starts the automatic run, pauses it, and resumes it from the same step. -->
+<button id="btnStart" class="primary" onclick="toggleRun()">▶ Start</button>
+<!-- Step: executes exactly one step and stops, so that the step can be discussed. -->
+<button id="btnStep" onclick="stepOnce()">Step</button>
+<!-- Restart: clears the execution window and the drawing and goes back to the first step. -->
+<button id="btnRestart" onclick="restart()">↺ Restart</button>
+<!-- Copy code: copies the listing (the SQL code with its comments) to the clipboard. -->
+<button onclick="copyListing()">Copy code</button>
+<!-- Download code: saves the listing as a file that can be run outside the browser. -->
+<button onclick="downloadListing()">⬇ .sql</button>
+<!-- Download page: saves this whole example as one HTML file. -->
+<button onclick="downloadHTML()">⬇ HTML</button>
+<!-- Download the drawing as a vector picture, in its current state. -->
+<button onclick="downloadSVG()">⬇ SVG</button>
+<!-- Download the drawing as a bitmap picture, in its current state. -->
+<button onclick="downloadPNG()">⬇ PNG</button>
+<!-- Copy the text of the execution window, for example to paste it into a lab report. -->
+<button onclick="copyLog()">Copy steps</button>
+</div>
+</header>
+<!-- The status line; the script writes into it after every step. -->
+<p id="status"></p>
+<!-- The main area with the three panels. -->
+<main>
+<!-- Panel 1: the listing, with the current statement highlighted. -->
+<section class="card">
+<!-- The label of the panel names the language of the listing. -->
+<h2>The code — SQL, one comment before every line</h2>
+<!-- The script fills this box with the lines of the listing. -->
+<div id="listing"></div>
+</section>
+<!-- Panel 2: the visualisation that changes while the code runs. -->
+<section class="card">
+<!-- The label of the panel says what the drawing shows. -->
+<h2>The order sheet of Saturday 21 November and the revenue per city — as typed, and checked</h2>
+<!-- The drawing; the script creates its shapes and changes them at every step. -->
+<svg id="viz" viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The order sheet of Saturday 21 November and the revenue per city — as typed, and checked"></svg>
+<!-- A place under the drawing for a results table. -->
+<div id="extra"></div>
+</section>
+<!-- Panel 3: the execution window, where every step is written so that a paused run can be analysed. -->
+<section class="card wide">
+<!-- The label of the panel. -->
+<h2>Execution window — every step is written here</h2>
+<!-- aria-live lets a screen reader announce each new line. -->
+<div id="log" aria-live="polite"></div>
+</section>
+</main>
+<!-- The hidden text area used by the copy fallback. -->
+<textarea id="copybuf" aria-hidden="true"></textarea>
+<!-- The script: first the data of this example, then its steps, then the runner that all examples share. -->
+<script>
+// ---------- the data of this example ----------
+// The ten rows of the order sheet exactly as they were typed: row number, order, customer, city, product, unit price, quantity (null = empty cell).
+var SHEET = [[1, "M505-1041", "Marta Iglesias", "Madrid", "Olive oil 1 L", 9.8, 2], [2, "M505-1041", "Marta Iglesias", "Madrid", "Sourdough loaf", 4.2, 1], [3, "M505-1042", "Diego Navarro", "Getafe", "Manchego cheese 250 g", 7.5, 1], [4, "M505-1043", "Sofía Ortiz", "MADRID", "Honey 500 g", 6.9, 1], [5, "M505-1044", "Pablo Serrano", "Alcobendas", "Oranges 2 kg", 3.6, 3], [6, "M505-1042", "Diego Navarro", "Getafe", "Manchego cheese 250 g", 7.5, 1], [7, "M505-1045", "Elena Vidal", "Madrid", "Almonds 200 g", 5.4, null], [8, "M505-1046", "Javier Molina", "Getafe", "Olive oil 1 L", 9.8, 1], [9, "M505-1047", "Nuria Campos", "Madrid", "Sourdough loaf", 4.2, 2], [10, "M505-1047", "Nuria Campos", "Madrid", "Honey 500 g", 6.9, 1]];
+// The lines of the listing shown on the left, exactly as they are saved in the downloadable .sql file.
+var LISTING = ["-- Create the table. Each of the next lines declares one column and the rules (constraints) that the DBMS will check for it.", "CREATE TABLE order_lines (", "  -- The order number is text and may not be empty.", "  order_id   TEXT NOT NULL,", "  -- The name of the customer may not be empty.", "  customer   TEXT NOT NULL,", "  -- The city may not be empty and must be one of the three agreed spellings.", "  city       TEXT NOT NULL CHECK (city IN ('Madrid', 'Getafe', 'Alcobendas')),", "  -- The name of the product may not be empty.", "  product    TEXT NOT NULL,", "  -- The unit price may not be empty and must be greater than zero; NUMERIC(8,2) stores money exactly, with two decimals.", "  unit_price NUMERIC(8,2) NOT NULL CHECK (unit_price > 0),", "  -- The quantity is a whole number, may not be empty and must be greater than zero.", "  quantity   INTEGER NOT NULL CHECK (quantity > 0),", "  -- One product can appear only once in one order: this pair of columns is the primary key of the table.", "  PRIMARY KEY (order_id, product)", "-- End of the table definition; from here on, every new row is checked against the rules above.", ");", "-- Row 1 of the sheet: every rule is met, so the row is accepted.", "INSERT INTO order_lines VALUES ('M505-1041', 'Marta Iglesias', 'Madrid', 'Olive oil 1 L', 9.80, 2);", "-- Row 2: the same order as row 1 with another product; the pair (order, product) is new, so the row is accepted.", "INSERT INTO order_lines VALUES ('M505-1041', 'Marta Iglesias', 'Madrid', 'Sourdough loaf', 4.20, 1);", "-- Row 3: a new order from Getafe; accepted.", "INSERT INTO order_lines VALUES ('M505-1042', 'Diego Navarro', 'Getafe', 'Manchego cheese 250 g', 7.50, 1);", "-- Row 4: the city is typed 'MADRID', which is not in the list of the CHECK rule, so the DBMS refuses the row.", "INSERT INTO order_lines VALUES ('M505-1043', 'Sofía Ortiz', 'MADRID', 'Honey 500 g', 6.90, 1);", "-- Row 5: an order from Alcobendas; accepted.", "INSERT INTO order_lines VALUES ('M505-1044', 'Pablo Serrano', 'Alcobendas', 'Oranges 2 kg', 3.60, 3);", "-- Row 6: the same order and the same product as row 3; the primary key refuses the duplicate.", "INSERT INTO order_lines VALUES ('M505-1042', 'Diego Navarro', 'Getafe', 'Manchego cheese 250 g', 7.50, 1);", "-- Row 7: the quantity is empty (NULL); the NOT NULL rule refuses the row.", "INSERT INTO order_lines VALUES ('M505-1045', 'Elena Vidal', 'Madrid', 'Almonds 200 g', 5.40, NULL);", "-- Row 8: a new order from Getafe; accepted.", "INSERT INTO order_lines VALUES ('M505-1046', 'Javier Molina', 'Getafe', 'Olive oil 1 L', 9.80, 1);", "-- Row 9: a new order from Madrid; accepted.", "INSERT INTO order_lines VALUES ('M505-1047', 'Nuria Campos', 'Madrid', 'Sourdough loaf', 4.20, 2);", "-- Row 10: the same order as row 9 with another product; accepted.", "INSERT INTO order_lines VALUES ('M505-1047', 'Nuria Campos', 'Madrid', 'Honey 500 g', 6.90, 1);", "-- Row 4 again, with the agreed spelling of the city: accepted.", "INSERT INTO order_lines VALUES ('M505-1043', 'Sofía Ortiz', 'Madrid', 'Honey 500 g', 6.90, 1);", "-- Row 7 again, after the customer confirmed a quantity of 2: accepted.", "INSERT INTO order_lines VALUES ('M505-1045', 'Elena Vidal', 'Madrid', 'Almonds 200 g', 5.40, 2);", "-- The manager's question, answered from the checked rows: orders and revenue per city, the largest revenue first.", "SELECT city, COUNT(DISTINCT order_id) AS orders, SUM(unit_price * quantity) AS revenue FROM order_lines GROUP BY city ORDER BY revenue DESC;"];
+// For each statement of the listing: the number of its first and of its last line, used to highlight the statement that is running.
+var STMT = {"create": [0, 17], "ins1": [18, 19], "ins2": [20, 21], "ins3": [22, 23], "ins4": [24, 25], "ins5": [26, 27], "ins6": [28, 29], "ins7": [30, 31], "ins8": [32, 33], "ins9": [34, 35], "ins10": [36, 37], "fix4": [38, 39], "fix7": [40, 41], "select": [42, 43]};
+// The characters that start a comment in the language of the listing.
+var CMT = "--";
+// The names under which the page, the drawing and the listing are downloaded.
+var FILEBASE = "IT505_Class01_example2_order_sheet_rules", LISTFILE = "IT505_Class01_example2_order_sheet_rules.sql";
+// ---------- example 2: the order sheet and the integrity rules ----------
+// The names of the six columns of the table, in the order of the values of an INSERT statement.
+var COLS = ["order_id", "customer", "city", "product", "unit_price", "quantity"];
+// The three agreed spellings of the city: the list inside the CHECK rule of the listing.
+var CITIES = ["Madrid", "Getafe", "Alcobendas"];
+// The four labels under the bar chart; 'MADRID' is there because the sheet, as typed, treats it as a separate city.
+var GROUPS = ["Madrid", "MADRID", "Getafe", "Alcobendas"];
+// The left edge and the width of each column of the drawn sheet, in pixels (the last column shows the answer of the DBMS).
+var XS = [6, 42, 130, 234, 322, 472, 544, 610], WS = [36, 88, 104, 88, 150, 72, 66, 144];
+// The rows accepted by the DBMS so far: the content of the table 'order_lines'.
+var table = [];
+// Draws the starting state: the sheet exactly as it was typed, and an empty bar chart.
+function resetView(){
+ // Empty the drawing, the table of accepted rows and the area under the drawing.
+ var svg = document.getElementById("viz"); svg.innerHTML = ""; table = []; document.getElementById("extra").innerHTML = "";
+ // A white background, so that a downloaded picture is not transparent.
+ el(svg, "rect", {x: 0, y: 0, width: 760, height: 520, fill: "#ffffff"});
+ // The header row of the sheet.
+ ["row", "order_id", "customer", "city", "product", "unit_price", "quantity", "answer of the DBMS"].forEach(function(h, i){ el(svg, "rect", {x: XS[i], y: 6, width: WS[i], height: 24, fill: "#E4F2F1", stroke: "#E7E2D8"}); el(svg, "text", {x: XS[i] + 5, y: 22, "font-size": 11, "font-weight": 700, fill: "#1C1917"}, h); });
+ // The ten rows of the sheet.
+ SHEET.forEach(function(r, n){
+  // The vertical position of the row.
+  var y = 30 + n * 24;
+  // The background of the row; its identifier lets a step colour it green or red.
+  el(svg, "rect", {id: "r" + r[0], x: 6, y: y, width: 748, height: 24, fill: "#ffffff", stroke: "#E7E2D8"});
+  // The seven values of the row; an empty value is drawn as an empty cell, exactly as in the sheet.
+  r.forEach(function(v, i){ el(svg, "text", {id: "v" + r[0] + "_" + i, x: XS[i] + 5, y: y + 16, "font-size": 11, fill: "#1C1917"}, v === null ? "" : (i === 5 ? f2(v) : v)); });
+  // An empty text in the last column for the answer of the DBMS.
+  el(svg, "text", {id: "s" + r[0], x: XS[7] + 5, y: y + 16, "font-size": 11, "font-weight": 700, fill: "#6B6560"}, "");
+ });
+ // The title of the bar chart.
+ el(svg, "text", {x: 6, y: 300, "font-size": 12, "font-weight": 700, fill: "#6B6560"}, "Revenue per city on Saturday 21 November 2026, in euros");
+ // The legend: grey for the sheet as typed, teal for the rows checked by the DBMS.
+ el(svg, "rect", {x: 470, y: 290, width: 12, height: 12, fill: "#B8B1A7"}); el(svg, "text", {x: 487, y: 300, "font-size": 11, fill: "#1C1917"}, "as typed (spreadsheet)");
+ // The second entry of the legend.
+ el(svg, "rect", {x: 620, y: 290, width: 12, height: 12, fill: "#0E7C7B"}); el(svg, "text", {x: 637, y: 300, "font-size": 11, fill: "#1C1917"}, "checked (DBMS)");
+ // The baseline of the chart and the name of each group under it.
+ el(svg, "line", {x1: 40, y1: 480, x2: 740, y2: 480, stroke: "#6B6560"}); GROUPS.forEach(function(g, i){ el(svg, "text", {x: 130 + i * 170, y: 498, "text-anchor": "middle", "font-size": 12, fill: "#1C1917"}, g); });
+ // A group that will hold the bars, so that a restart can remove them together.
+ el(svg, "g", {id: "bars"});
+}
+// Checks one row against the declared rules, in the order in which PostgreSQL checks them; returns null when the row is accepted.
+function check(v){
+ // Rule NOT NULL: none of the six values may be empty.
+ for (var i = 0; i < 6; i++) if (v[i] === null || v[i] === "") return {col: i + 1, rule: "NOT NULL", term: "the sheet has no enforced rule", msg: 'ERROR: null value in column "' + COLS[i] + '" of relation "order_lines" violates not-null constraint'};
+ // Rule CHECK on the city: the value must be one of the agreed spellings.
+ if (CITIES.indexOf(v[2]) < 0) return {col: 3, rule: "CHECK (city IN …)", term: "data inconsistency", msg: 'ERROR: new row for relation "order_lines" violates check constraint "order_lines_city_check"'};
+ // Rules CHECK on the numbers: the price and the quantity must be greater than zero.
+ if (!(v[4] > 0) || !(v[5] > 0)) return {col: v[4] > 0 ? 6 : 5, rule: "CHECK (… > 0)", term: "the sheet has no enforced rule", msg: 'ERROR: new row for relation "order_lines" violates check constraint "order_lines_' + (v[4] > 0 ? "quantity" : "unit_price") + '_check"'};
+ // Rule PRIMARY KEY: the pair (order_id, product) may not already be in the table.
+ if (table.some(function(t){ return t[0] === v[0] && t[3] === v[3]; })) return {col: 0, rule: "PRIMARY KEY (order_id, product)", term: "data redundancy", msg: 'ERROR: duplicate key value violates unique constraint "order_lines_pkey"'};
+ // No rule is broken.
+ return null;
+}
+// Adds up the orders and the revenue per city over a list of rows; an empty quantity counts as zero, as a spreadsheet does.
+function totals(rows){
+ // The result: one entry per city, with the set of its order numbers and its revenue.
+ var t = {};
+ // Go through the rows; the city is value 2, the price value 4, the quantity value 5.
+ rows.forEach(function(v){ var c = t[v[2]] = t[v[2]] || {ids: {}, rev: 0}; c.ids[v[0]] = 1; c.rev += v[4] * (v[5] || 0); });
+ // Hand the totals back.
+ return t;
+}
+// Draws one series of bars: series 0 is the sheet as typed (grey), series 1 the checked rows (teal).
+function bars(series, t){
+ // The group of the bars and the colour of the series.
+ var g = document.getElementById("bars"), fill = series ? "#0E7C7B" : "#B8B1A7";
+ // One bar per city that has a total; 2.6 pixels stand for one euro.
+ GROUPS.forEach(function(name, i){ if (!t[name]) return; var h = t[name].rev * 2.6, x = 130 + i * 170 + (series ? 6 : -56); el(g, "rect", {x: x, y: 480 - h, width: 50, height: h, fill: fill}); el(g, "text", {x: x + 25, y: 474 - h, "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: "#1C1917"}, f2(t[name].rev)); });
+}
+// Sends one row to the DBMS: accepted rows enter the table, refused rows are marked and explained.
+function insert(tag, n, v, corrected){
+ // Highlight the statement, write it to the execution window, and check the row.
+ mark(tag); log("INSERT INTO order_lines VALUES ('" + v.slice(0, 4).join("', '") + "', " + f2(v[4]) + ", " + (v[5] === null ? "NULL" : v[5]) + ")   -- row " + n + (corrected ? ", corrected" : ""), "st"); var bad = check(v);
+ // Accepted: store the row, colour it green, write the confirmation.
+ if (!bad){ table.push(v); document.getElementById("r" + n).setAttribute("fill", "#E2F4EE"); document.getElementById("s" + n).textContent = corrected ? "accepted (corrected)" : "accepted"; document.getElementById("s" + n).setAttribute("fill", "#0d8a6a"); log("→ INSERT 0 1   (" + table.length + (table.length === 1 ? " row" : " rows") + " in the table)", "rs"); return; }
+ // Refused: colour the row red and name the rule in the last column.
+ document.getElementById("r" + n).setAttribute("fill", "#FBE9E9"); document.getElementById("s" + n).textContent = "refused: " + bad.rule.split(" ")[0] + (bad.rule.indexOf("PRIMARY") === 0 ? " KEY" : bad.rule.indexOf("NOT") === 0 ? " NULL" : ""); document.getElementById("s" + n).setAttribute("fill", "#B5440C");
+ // Circle the cell that breaks the rule; for a duplicate, the whole row is framed.
+ var y = 30 + (n - 1) * 24; if (bad.col) el(document.getElementById("viz"), "ellipse", {cx: XS[bad.col] + WS[bad.col] / 2, cy: y + 12, rx: WS[bad.col] / 2 - 2, ry: 11, fill: "none", stroke: "#B5440C", "stroke-width": 2.5}); else el(document.getElementById("viz"), "rect", {x: 8, y: y + 2, width: 600, height: 20, rx: 9, fill: "none", stroke: "#B5440C", "stroke-width": 2.5});
+ // Write the error message of the DBMS and the term of the lesson that names the problem.
+ log("→ " + bad.msg, "er"); log("Reading: rule " + bad.rule + " refuses row " + n + ". Term of Lesson 2: " + bad.term + ".", "rd");
+}
+// Prepares the list of steps: the totals of the sheet as typed, then one step per SQL statement of the listing.
+function buildSteps(){
+ // Start from an empty list.
+ STEPS = [];
+ // Step 1: what a spreadsheet answers, with no rule at all.
+ STEPS.push(function(){
+  // Total the ten rows exactly as typed and draw the grey bars.
+  var t = totals(SHEET.map(function(r){ return r.slice(1); })); bars(0, t);
+  // Write the totals: 'Madrid' and 'MADRID' are two groups, the duplicate is counted, the empty quantity counts as zero.
+  log("Spreadsheet, as typed — orders and revenue per city (no rule is checked)", "st"); GROUPS.forEach(function(g){ var k = Object.keys(t[g].ids).length; log("→ " + g + " | " + k + (k === 1 ? " order | " : " orders | ") + f2(t[g].rev) + " €", "rs"); });
+  // Write the reading.
+  log("Reading: four 'cities' for three real ones. These numbers are wrong, and nothing in the sheet says so.", "rd");
+ });
+ // Step 2: the CREATE TABLE statement declares the rules once.
+ STEPS.push(function(){ mark("create"); log("CREATE TABLE order_lines ( … NOT NULL … CHECK … PRIMARY KEY … )", "st"); log("→ CREATE TABLE   (0 rows; from now on every row is checked against the declared rules)", "rs"); });
+ // Steps 3 to 12: the ten rows of the sheet, one INSERT statement each.
+ SHEET.forEach(function(r){ STEPS.push(function(){ insert("ins" + r[0], r[0], r.slice(1), false); }); });
+ // Step 13: row 4 again, with the agreed spelling of the city.
+ STEPS.push(function(){ var v = SHEET[3].slice(1); v[2] = "Madrid"; document.getElementById("v4_3").textContent = "Madrid"; document.getElementById("v4_3").setAttribute("fill", "#0E7C7B"); insert("fix4", 4, v, true); });
+ // Step 14: row 7 again, after the customer confirmed a quantity of 2.
+ STEPS.push(function(){ var v = SHEET[6].slice(1); v[5] = 2; document.getElementById("v7_6").textContent = "2"; document.getElementById("v7_6").setAttribute("fill", "#0E7C7B"); insert("fix7", 7, v, true); });
+ // Step 15: the manager's question, answered from the rows that passed the checks.
+ STEPS.push(function(){
+  // Highlight the statement, total the accepted rows and draw the teal bars.
+  mark("select"); var t = totals(table), typed = totals(SHEET.map(function(r){ return r.slice(1); })); bars(1, t);
+  // Write the statement and one result line per city, largest revenue first, next to the number of the sheet as typed.
+  log("SELECT city, COUNT(DISTINCT order_id), SUM(unit_price * quantity) FROM order_lines GROUP BY city ORDER BY revenue DESC", "st"); Object.keys(t).sort(function(a, b){ return t[b].rev - t[a].rev; }).forEach(function(c){ var k = Object.keys(t[c].ids).length; log("→ " + c + " | " + k + (k === 1 ? " order | " : " orders | ") + f2(t[c].rev) + " €   (as typed: " + f2(typed[c].rev) + " €)", "rs"); });
+  // Write the reading and the decision.
+  log("(3 rows) Reading: Madrid brings " + f2(t.Madrid.rev) + " €, more than three times Getafe (" + f2(t.Getafe.rev) + " €). Decision: the second van goes to Madrid.", "rd");
+ });
+}
+// ---------- the runner shared by all examples of the lecture ----------
+// The list of steps; buildSteps() of the example fills it with one function per step.
+var STEPS = [];
+// The cursor is the number of the next step to execute; Pause keeps it, so Start resumes from the same place.
+var cursor = 0;
+// The timer of the automatic run; null means that the runner is paused.
+var timer = null;
+// The pause between two automatic steps, in milliseconds, long enough to read one line aloud.
+var DELAY = 1600;
+// The namespace that the browser needs to create SVG shapes.
+var NS = "http://www.w3.org/2000/svg";
+// Creates one SVG shape with its attributes and optional text, adds it to a parent and returns it.
+function el(parent, tag, attrs, text){
+ // Create the shape in the SVG namespace.
+ var e = document.createElementNS(NS, tag);
+ // Copy every attribute (position, size, colours) onto the shape.
+ for (var k in attrs) e.setAttribute(k, attrs[k]);
+ // Put the text inside the shape when a text was given.
+ if (text !== undefined) e.textContent = text;
+ // Attach the shape to its parent so that it is drawn.
+ parent.appendChild(e);
+ // Return the shape so that the caller can change it later.
+ return e;
+}
+// Formats a number with two decimals, as money and marks are shown in the lecture.
+function f2(x){ return (Math.round(x * 100) / 100).toFixed(2); }
+// Draws the listing: one numbered line per line of code or comment.
+function renderListing(){
+ // Find the box of the listing and empty it.
+ var box = document.getElementById("listing"); box.innerHTML = "";
+ // Go through the lines of the listing in order.
+ LISTING.forEach(function(text, i){
+  // One line is a row with a number and the text.
+  var d = document.createElement("div"); d.className = "ln"; d.id = "L" + i;
+  // A line whose first visible characters are the comment mark is styled as a comment.
+  if (text.replace(/^\s+/, "").indexOf(CMT) === 0) d.className += " cm";
+  // The line number, starting at 1.
+  var n = document.createElement("i"); n.textContent = i + 1; d.appendChild(n);
+  // The text of the line; textContent keeps special characters as plain text.
+  var s = document.createElement("span"); s.textContent = text; d.appendChild(s);
+  // Add the row to the box.
+  box.appendChild(d);
+ });
+}
+// Highlights the lines of one statement (given by its tag) and scrolls the listing so that they are visible.
+function mark(tag){
+ // Remove the highlight of the previous statement.
+ document.querySelectorAll(".ln.cur").forEach(function(d){ d.classList.remove("cur"); });
+ // Look up the first and the last line of the statement; leave if the tag is unknown.
+ var r = STMT[tag]; if (!r) return;
+ // Highlight every line of the range, comment line included.
+ for (var i = r[0]; i <= r[1]; i++) document.getElementById("L" + i).classList.add("cur");
+ // Scroll inside the listing box only, so that the page itself does not jump.
+ var box = document.getElementById("listing"), first = document.getElementById("L" + r[0]); box.scrollTop = Math.max(0, first.offsetTop - box.offsetTop - 40);
+}
+// Writes one line into the execution window; cls selects the style (st, rs, er, rd).
+function log(text, cls){
+ // Create the line and set its style.
+ var d = document.createElement("div"); d.className = cls || ""; d.textContent = text;
+ // Add it to the window and scroll to the newest line.
+ var box = document.getElementById("log"); box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+// Refreshes the status line and the labels and states of the buttons.
+function updateStatus(){
+ // True when every step has been executed.
+ var done = cursor >= STEPS.length;
+ // The sentence under the header: running or paused, and how far the run is.
+ document.getElementById("status").textContent = (timer ? "Running — " : "Paused — ") + "step " + cursor + " of " + STEPS.length + (done ? " — finished. Restart to run again." : ". Start runs by itself; Step runs one step.");
+ // The main button says Pause while running, Start at the beginning or the end, Resume in between.
+ document.getElementById("btnStart").textContent = timer ? "⏸ Pause" : (cursor === 0 || done ? "▶ Start" : "▶ Resume");
+ // Step cannot be used while the runner runs by itself, or when nothing is left.
+ document.getElementById("btnStep").disabled = !!timer || done;
+}
+// Executes exactly one step: the one at the cursor.
+function stepOnce(){
+ // Nothing left: stop the timer and leave.
+ if (cursor >= STEPS.length){ pause(); return; }
+ // Run the step, then move the cursor to the next one.
+ STEPS[cursor](); cursor++;
+ // After the last step the automatic run stops by itself.
+ if (cursor >= STEPS.length) pause();
+ // Show the new state.
+ updateStatus();
+}
+// Starts or resumes the automatic run from the cursor.
+function run(){
+ // Already running: do nothing.
+ if (timer) return;
+ // One step every DELAY milliseconds.
+ timer = setInterval(stepOnce, DELAY);
+ // The first step runs at once, so that the click has an immediate effect.
+ stepOnce();
+ // Show the new state.
+ updateStatus();
+}
+// Pauses the automatic run; the cursor is kept.
+function pause(){
+ // Stop the timer when there is one.
+ if (timer){ clearInterval(timer); timer = null; }
+ // Show the new state.
+ updateStatus();
+}
+// The single Start / Pause button: pause when running, otherwise run (from the start again when the run had finished).
+function toggleRun(){
+ // A finished run starts again from the first step.
+ if (!timer && cursor >= STEPS.length) restart();
+ // Switch between the two states.
+ if (timer) pause(); else run();
+}
+// Restart: stop, empty the execution window, redraw the first state, rebuild the steps.
+function restart(){
+ // Stop the automatic run and go back to step 0.
+ pause(); cursor = 0;
+ // Empty the execution window and remove the highlight in the listing.
+ document.getElementById("log").innerHTML = ""; mark("none");
+ // Let the example draw its starting state and prepare its steps again.
+ resetView(); buildSteps();
+ // Tell the user what to do next.
+ log("Ready. Press Start, or Step to go one step at a time.", "rd"); updateStatus();
+}
+// Copies a text to the clipboard and reports it in the execution window.
+function copyText(text, what){
+ // The modern clipboard interface, when the browser allows it in this context.
+ if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){ log(what + " copied to the clipboard (" + text.length + " characters).", "rd"); }, function(){ copyFallback(text, what); }); }
+ // Otherwise the hidden text area is used.
+ else copyFallback(text, what);
+}
+// The fallback: put the text in the hidden text area, select it and run the copy command.
+function copyFallback(text, what){
+ // Fill and select the hidden text area.
+ var ta = document.getElementById("copybuf"); ta.value = text; ta.select();
+ // Run the copy command and report success or failure.
+ try { document.execCommand("copy"); log(what + " copied to the clipboard.", "rd"); } catch (e){ log("Copy failed: select the text by hand and copy it.", "er"); }
+}
+// The listing as one text, exactly as it is saved in the downloadable file.
+function listingText(){ return LISTING.join("\n") + "\n"; }
+// Copy code: the listing with its comments.
+function copyListing(){ copyText(listingText(), "The code"); }
+// Copy steps: the text of the execution window.
+function copyLog(){ copyText(document.getElementById("log").innerText, "The steps"); }
+// Saves a piece of content as a file with the given name.
+function saveBlob(blob, name){
+ // Make a temporary address for the content and a link that points to it.
+ var url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = name;
+ // Click the link to start the download, then remove it.
+ document.body.appendChild(a); a.click(); document.body.removeChild(a);
+ // Release the temporary address a moment later.
+ setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+}
+// Download the listing as a file that runs outside the browser.
+function downloadListing(){ saveBlob(new Blob([listingText()], {type: "text/plain"}), LISTFILE); }
+// The complete source of this page, comments included.
+function pageSource(){ return "<!DOCTYPE html>\n" + document.documentElement.outerHTML; }
+// Download this page as one HTML file.
+function downloadHTML(){ saveBlob(new Blob([pageSource()], {type: "text/html"}), FILEBASE + ".html"); }
+// The drawing as SVG text, in its current state; all colours are attributes, so the file needs no style sheet.
+function svgText(){ return new XMLSerializer().serializeToString(document.getElementById("viz")); }
+// Download the drawing as a vector file.
+function downloadSVG(){ saveBlob(new Blob([svgText()], {type: "image/svg+xml"}), FILEBASE + ".svg"); }
+// Download the drawing as a bitmap: the SVG is loaded into an image, painted on a canvas and exported.
+function downloadPNG(){
+ // The size of the drawing, taken from its viewBox, doubled for a sharp picture.
+ var vb = document.getElementById("viz").viewBox.baseVal, img = new Image();
+ // When the image is ready: white background, draw, export.
+ img.onload = function(){ var c = document.createElement("canvas"); c.width = vb.width * 2; c.height = vb.height * 2; var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height); c.toBlob(function(b){ saveBlob(b, FILEBASE + ".png"); }, "image/png"); };
+ // Load the SVG text as the source of the image.
+ img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgText());
+}
+// Keyboard shortcuts for the projector: space = Start / Pause, right arrow = Step, r = Restart.
+document.addEventListener("keydown", function(e){ if (e.key === " "){ e.preventDefault(); toggleRun(); } else if (e.key === "ArrowRight"){ if (!timer) stepOnce(); } else if (e.key === "r"){ restart(); } });
+// When the page has loaded: draw the listing, then put the example in its starting state.
+renderListing(); restart();
+</script>
+</body>
+</html>

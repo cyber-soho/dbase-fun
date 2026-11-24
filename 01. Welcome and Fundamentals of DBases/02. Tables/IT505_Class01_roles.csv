@@ -1,0 +1,5 @@
+﻿Role,What the role does
+Data analyst,Turns business questions into queries and presents the answers as tables and charts
+Data scientist,"Builds statistical and machine-learning models; selects, joins and summarises the data in the database first"
+Data engineer,Builds and operates the processes that move data into the databases where they are analysed
+Database administrator,"Installs the DBMS, controls access, makes backups and keeps performance acceptable"

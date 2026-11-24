@@ -1,0 +1,11 @@
+﻿row,order_id,customer,city,product,unit_price,quantity
+1,M505-1041,Marta Iglesias,Madrid,Olive oil 1 L,9.80,2
+2,M505-1041,Marta Iglesias,Madrid,Sourdough loaf,4.20,1
+3,M505-1042,Diego Navarro,Getafe,Manchego cheese 250 g,7.50,1
+4,M505-1043,Sofía Ortiz,MADRID,Honey 500 g,6.90,1
+5,M505-1044,Pablo Serrano,Alcobendas,Oranges 2 kg,3.60,3
+6,M505-1042,Diego Navarro,Getafe,Manchego cheese 250 g,7.50,1
+7,M505-1045,Elena Vidal,Madrid,Almonds 200 g,5.40,
+8,M505-1046,Javier Molina,Getafe,Olive oil 1 L,9.80,1
+9,M505-1047,Nuria Campos,Madrid,Sourdough loaf,4.20,2
+10,M505-1047,Nuria Campos,Madrid,Honey 500 g,6.90,1

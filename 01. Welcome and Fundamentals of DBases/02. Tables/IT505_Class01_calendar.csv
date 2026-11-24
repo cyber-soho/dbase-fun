@@ -1,0 +1,15 @@
+﻿Class,Date,Day,Where,Title
+1,23 November 2026,Monday,on campus,"Welcome, and why databases exist"
+2,24 November 2026,Tuesday,on campus,Flat files and file-based databases
+3,25 November 2026,Wednesday,on campus,Designing a database: from business rules to tables
+4,26 November 2026,Thursday,on campus,Building it in PostgreSQL: create and populate
+5,30 November 2026,Monday,on campus,Asking across tables: joins
+6,1 December 2026,Tuesday,"online, self-paced",Summarising data: aggregates and groups
+7,2 December 2026,Wednesday,"online, live",Mid-term review
+8,3 December 2026,Thursday,"on campus — exam, invigilated",Mid-term exam
+9,9 December 2026,Wednesday,"online, live",Advanced queries and logical functions
+10,10 December 2026,Thursday,"online, live","Reusable SQL, and connecting to Python or R"
+11,14 December 2026,Monday,"online, live",Beyond tables: non-relational databases
+12,15 December 2026,Tuesday,"online, live",Big data and blockchain
+13,16 December 2026,Wednesday,"online, live",Final exam review
+14,17 December 2026,Thursday,"on campus — exam, invigilated",Final exam and course feedback

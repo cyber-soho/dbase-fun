@@ -1,0 +1,214 @@
+# IT 505 · Fundamentals of Database Technologies · Cyber.SoHo Educational Hub · explained in Guide 4
+# Legal notice: https://cyber-soho.github.io/prevmon/00.01.%20cyber.soho%20-%20legal.html
+# The services named here are a proposal: any other suitable service may replace one of them if you can justify the choice.
+AWSTemplateFormatVersion: '2010-09-09'   # the version of the template language; this date is the only one that exists
+# A short text that the CloudFormation console shows for this stack.
+Description: >-
+  IT 505 Fundamentals of Database Technologies (Cyber.SoHo Educational Hub) - the database families of the
+  course as AWS managed services, for the AWS Academy Learner Lab: Amazon RDS for PostgreSQL (relational),
+  Amazon DynamoDB (key-value and document), Amazon S3 (flat files), and optionally Amazon Athena with the
+  AWS Glue Data Catalog (SQL on files). Created and deleted by it505_aws.sh. No IAM resource is created.
+  Version 1.0, 21 November 2026.
+
+# ---------------------------------------------------------------------------------------------
+# Parameters are filled in by it505_aws.sh; you can also type them in the CloudFormation console.
+# ---------------------------------------------------------------------------------------------
+Parameters:
+  VpcId:   # parameter 1: the network
+    Type: AWS::EC2::VPC::Id   # the console offers the existing networks to choose from
+    Description: The network (VPC) in which the database is placed. The default VPC of the lab account is suitable.
+  SubnetIds:   # parameter 2: the subnets
+    Type: List<AWS::EC2::Subnet::Id>   # a list of existing subnets
+    Description: At least two subnets of that VPC in different Availability Zones. Amazon RDS requires two even for one database.
+  ClientCidr:   # parameter 3: who may connect
+    Type: String   # a piece of text
+    Description: The only address range that may reach the database, for example 203.0.113.7/32 for one computer.
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$'   # accept only the form a.b.c.d/n
+  DbPassword:   # parameter 4: the password
+    Type: String   # a piece of text
+    NoEcho: true   # never show the value in the console or in logs
+    MinLength: 8   # at least 8 characters
+    MaxLength: 64   # at most 64 characters
+    AllowedPattern: '^[A-Za-z0-9._%+=-]+$'   # only characters that cause no trouble in a connection address
+    Description: Password of the database user it505 (8 to 64 letters, digits and . _ - + = %).
+  DbInstanceClass:   # parameter 5: the size of the server
+    Type: String   # a piece of text
+    Default: db.t3.micro   # the value used when none is given
+    AllowedValues: [db.t3.micro, db.t3.small, db.t3.medium]   # the three sizes offered
+    Description: Size of the database server. The Learner Lab allows the sizes nano to medium; micro is enough for the course.
+  WithAnalytics:   # parameter 6: with or without the Athena part
+    Type: String   # a piece of text
+    Default: 'false'   # without, unless asked for
+    AllowedValues: ['true', 'false']   # the two accepted answers
+    Description: Also create the Athena workgroup and the Glue database. it505_aws.sh adds them in a second step.
+
+Metadata:   # notes for tools that check this file; AWS itself ignores them
+  cfn-lint:   # settings for the checker cfn-lint
+    config:   # its configuration
+      # W1011 asks for the password to come from AWS Secrets Manager. Here it is a hidden (NoEcho) parameter that
+      # it505_aws.sh generates, which keeps the template free of any further service the lab account may not allow.
+      ignore_checks: [W1011]   # do not report finding W1011, for the reason given above
+
+Conditions:   # named tests that resources can refer to
+  CreateAnalytics: !Equals [!Ref WithAnalytics, 'true']   # true when the parameter WithAnalytics is the word true
+
+Resources:   # everything that the stack creates
+  # ---- Relational family: PostgreSQL run by Amazon RDS (Relational Database Service) ----
+  DbSecurityGroup:   # resource 1: the firewall of the database
+    Type: AWS::EC2::SecurityGroup   # its kind: a security group of Amazon EC2
+    Properties:   # its settings
+      GroupDescription: IT 505 - PostgreSQL on RDS, reachable from one address range only   # a description shown in the console
+      VpcId: !Ref VpcId   # the network it belongs to
+      SecurityGroupIngress:   # the list of incoming rules
+        # Port 5432 is the PostgreSQL port; only the address range given above may open a connection.
+        - IpProtocol: tcp   # the rule applies to TCP connections
+          FromPort: 5432   # from port 5432 ...
+          ToPort: 5432   # ... to port 5432: this one port only
+          CidrIp: !Ref ClientCidr   # only from the given address range
+          Description: it505 client   # a label for the rule
+      Tags:   # labels attached to the resource
+        - Key: Name   # the label Name ...
+          Value: it505-services-db   # ... with this value, shown in the lists of the console
+
+  DbSubnetGroup:   # resource 2: where RDS may place the database
+    Type: AWS::RDS::DBSubnetGroup   # its kind: a subnet group of Amazon RDS
+    Properties:   # its settings
+      DBSubnetGroupDescription: IT 505 - subnets in which RDS may place the database   # a description shown in the console
+      SubnetIds: !Ref SubnetIds   # the subnets given as parameter
+
+  Database:   # resource 3: the PostgreSQL server
+    Type: AWS::RDS::DBInstance   # its kind: a database instance of Amazon RDS
+    # Deleting the stack deletes the database and takes no final snapshot: the lab data are fictional.
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete   # the same rule if an update has to replace the database
+    Properties:   # its settings
+      DBInstanceIdentifier: it505-postgres   # the fixed name by which it505_aws.sh finds it
+      # No EngineVersion is given: RDS installs its current default PostgreSQL version.
+      Engine: postgres
+      DBInstanceClass: !Ref DbInstanceClass   # the size given as parameter
+      # 20 GB of General Purpose (gp2) storage; the Learner Lab allows gp2 up to 100 GB.
+      AllocatedStorage: '20'
+      StorageType: gp2   # the disk type that the Learner Lab allows
+      DBName: mercadillo   # the database created inside the server
+      MasterUsername: it505   # the name of the administrator of that database
+      MasterUserPassword: !Ref DbPassword   # its password, given as parameter
+      # Reachable from the internet, but only from the address range of the security group, and encrypted with TLS.
+      PubliclyAccessible: true
+      VPCSecurityGroups: [!Ref DbSecurityGroup]   # the firewall defined above
+      DBSubnetGroupName: !Ref DbSubnetGroup   # the subnet group defined above
+      # The three settings below are restrictions of the Learner Lab: one zone, no enhanced monitoring, no Performance Insights.
+      MultiAZ: false
+      MonitoringInterval: 0   # 0 switches enhanced monitoring off
+      EnablePerformanceInsights: false   # no Performance Insights
+      # No automatic backups: they would slow down creation and deletion, and the data are fictional.
+      BackupRetentionPeriod: 0
+      AutoMinorVersionUpgrade: true   # small corrections of PostgreSQL are installed by RDS itself
+      DeletionProtection: false   # the database may be deleted without an extra step
+      # Storage encryption is left off so that the stack does not depend on key permissions of the lab account.
+      # Outside a teaching lab, set this to true.
+      StorageEncrypted: false
+      Tags:   # labels attached to the resource
+        - Key: Course   # the label Course ...
+          Value: IT505   # ... with the value IT505
+
+  # ---- Non-relational family: a key-value and document table in Amazon DynamoDB ----
+  OrdersTable:   # resource 4: the table
+    Type: AWS::DynamoDB::Table   # its kind: a table of Amazon DynamoDB
+    DeletionPolicy: Delete   # deleting the stack deletes the table
+    UpdateReplacePolicy: Delete   # the same rule if an update has to replace it
+    Properties:   # its settings
+      TableName: it505-orders   # the fixed name used in Guide 4
+      # On-demand billing: nothing is paid while the table is not used.
+      BillingMode: PAY_PER_REQUEST
+      # pk is the partition key (which group an item belongs to); sk is the sort key (its place inside the group).
+      AttributeDefinitions:
+        - AttributeName: pk   # the attribute pk ...
+          AttributeType: S   # ... holds text (S stands for string)
+        - AttributeName: sk   # the attribute sk ...
+          AttributeType: S   # ... holds text as well
+      KeySchema:   # which attributes form the key
+        - AttributeName: pk   # pk ...
+          KeyType: HASH   # ... is the partition key (HASH)
+        - AttributeName: sk   # sk ...
+          KeyType: RANGE   # ... is the sort key (RANGE)
+      Tags:   # labels attached to the resource
+        - Key: Course   # the label Course ...
+          Value: IT505   # ... with the value IT505
+
+  # ---- Flat-file family: a private bucket in Amazon S3 (Simple Storage Service) ----
+  DataBucket:   # resource 5: the bucket
+    Type: AWS::S3::Bucket   # its kind: a bucket of Amazon S3
+    DeletionPolicy: Delete   # deleting the stack deletes the bucket; it505_aws.sh empties it first
+    UpdateReplacePolicy: Delete   # the same rule if an update has to replace it
+    Properties:   # its settings
+      # Bucket names are unique in the whole of AWS; the account number and the Region make this one unique.
+      BucketName: !Sub 'it505-data-${AWS::AccountId}-${AWS::Region}'
+      # Nothing in this bucket can be made public.
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true   # refuse new public access lists
+        BlockPublicPolicy: true   # refuse public bucket policies
+        IgnorePublicAcls: true   # ignore public access lists that exist
+        RestrictPublicBuckets: true   # refuse access through a public policy
+      # Files are encrypted at rest with keys managed by S3.
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:   # the encryption rules
+          - ServerSideEncryptionByDefault:   # one rule: the default for every file
+              SSEAlgorithm: AES256   # AES with 256-bit keys, managed by S3
+      Tags:   # labels attached to the resource
+        - Key: Course   # the label Course ...
+          Value: IT505   # ... with the value IT505
+
+  # ---- SQL on files: Amazon Athena and the AWS Glue Data Catalog (created in the second step) ----
+  AthenaWorkGroup:   # resource 6: the Athena workgroup
+    Type: AWS::Athena::WorkGroup   # its kind: a workgroup of Amazon Athena
+    Condition: CreateAnalytics   # created only when the Athena part was asked for
+    Properties:   # its settings
+      Name: it505   # the fixed name used in Guide 4
+      Description: IT 505 - queries on the files of the course bucket
+      State: ENABLED   # ready for use
+      # Deleting the stack also deletes the saved queries of the workgroup.
+      RecursiveDeleteOption: true
+      WorkGroupConfiguration:   # the rules of the workgroup
+        # Every query uses these settings, whatever the person types in the console.
+        EnforceWorkGroupConfiguration: true
+        # A query that would read more than 1 GB is stopped: at most about half a US cent per query.
+        BytesScannedCutoffPerQuery: 1073741824
+        ResultConfiguration:   # where the results go
+          OutputLocation: !Sub 's3://${DataBucket}/athena-results/'   # a folder inside the bucket defined above
+
+  GlueDatabase:   # resource 7: the catalogue of table definitions
+    Type: AWS::Glue::Database   # its kind: a database of the AWS Glue Data Catalog
+    Condition: CreateAnalytics   # created only when the Athena part was asked for
+    Properties:   # its settings
+      CatalogId: !Ref AWS::AccountId   # the catalogue of this account
+      DatabaseInput:   # the description of the database
+        Name: it505   # the fixed name used in Guide 4
+        Description: IT 505 - table definitions for the files of the course bucket
+
+Outputs:   # values that the stack reports after it was created
+  DbEndpoint:   # the address of the database server
+    Description: Host name of the PostgreSQL server
+    Value: !GetAtt Database.Endpoint.Address   # read from the database resource
+  DbPort:   # its port
+    Description: Port of the PostgreSQL server
+    Value: !GetAtt Database.Endpoint.Port   # read from the database resource
+  DbName:   # the name of the database
+    Description: Name of the course database
+    Value: mercadillo   # a fixed value
+  DbUser:   # the database user
+    Description: Database user
+    Value: it505   # a fixed value
+  TableName:   # the name of the table
+    Description: DynamoDB table
+    Value: !Ref OrdersTable   # read from the table resource
+  BucketName:   # the name of the bucket
+    Description: S3 bucket for data files and query results
+    Value: !Ref DataBucket   # read from the bucket resource
+  AthenaWorkGroup:   # the name of the workgroup
+    Condition: CreateAnalytics   # reported only when the Athena part exists
+    Description: Athena workgroup
+    Value: !Ref AthenaWorkGroup   # read from the workgroup resource
+  GlueDatabase:   # the name of the Glue database
+    Condition: CreateAnalytics   # reported only when the Athena part exists
+    Description: Glue database used by Athena
+    Value: !Ref GlueDatabase   # read from the Glue database resource

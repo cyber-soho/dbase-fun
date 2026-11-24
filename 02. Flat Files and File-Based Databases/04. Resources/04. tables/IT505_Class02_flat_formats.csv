@@ -1,0 +1,4 @@
+﻿Format,Delimiter,Quoting,Header,Types,Defined by,Typical use,Size of the 11 excerpt records
+CSV,comma (sometimes ; or |),"double quotes around a field with a comma, quote or line break; inner quote doubled",optional first line,none: every value is text,"RFC 4180 (IETF, 2005, informational)","exchange between programs, exports","1,827 bytes (12 data lines with the malformed one)"
+TSV,tab,normally none: tabs are not allowed inside fields,optional first line,none: every value is text,IANA media type text/tab-separated-values,"statistics exports, clipboard copies from spreadsheets","1,680 bytes"
+JSON Lines,one JSON object per line,JSON string escaping,none: every value carries its name,"string, number, true/false, null, object, array (no date)","jsonlines.org; JSON = RFC 8259, ECMA-404","logs, API exports, document databases (Lab 3, Track A)","3,889 bytes"

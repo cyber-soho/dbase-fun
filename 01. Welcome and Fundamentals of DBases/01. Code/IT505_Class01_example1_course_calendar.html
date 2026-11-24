@@ -1,0 +1,468 @@
+<!-- The document type declaration switches the browser to standards mode, so that layout and scripts behave the same everywhere. -->
+<!DOCTYPE html>
+<!-- The root element; lang="en" tells screen readers and spell-checkers that the text is English. -->
+<html lang="en">
+<!-- The head holds the metadata, the title and the styles; nothing in it is drawn on the page. -->
+<head>
+<!-- UTF-8 is declared so that accents, the euro sign and arrows are displayed correctly. -->
+<meta charset="utf-8">
+<!-- The viewport rule lets the page fit the width of a phone or a tablet. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The title is shown on the browser tab and names the example. -->
+<title>IT 505 - Class 1 - Example 1 - Course calendar and grade query runner</title>
+<!-- All styles are written here; the page loads nothing from the network, so it also works offline. -->
+<style>
+/* The colours of the Cyber.SoHo light theme: warm paper, deep teal, rust for warnings, amber for the current step. */
+:root{--paper:#FAF7F2;--ink:#1C1917;--teal:#0E7C7B;--teal-l:#E4F2F1;--rust:#B5440C;--rust-l:#FBE9E9;--amber-l:#FFF3CD;--line:#E7E2D8;--muted:#6B6560;--ok:#0d8a6a;}
+/* The page uses the fonts already installed on the computer, the paper colour, and a small margin so that it fits inside the lecture module. */
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--paper);color:var(--ink);margin:0;padding:12px;font-size:14px;}
+/* The header places the title on the left and the buttons on the right, and wraps on a narrow screen. */
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px;}
+/* The title is small and teal, so that the example is recognised as part of the lecture module. */
+h1{font-size:16px;margin:0;color:var(--teal);}
+/* Every button has the same look: teal border, rounded corners, and a pointer cursor to show that it can be clicked. */
+button{border:1px solid var(--teal);background:#fff;color:var(--teal);border-radius:6px;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px;margin:2px 0;}
+/* The Start / Pause button is filled with teal, because it is the button used most. */
+button.primary{background:var(--teal);color:#fff;}
+/* A button that cannot be used at the moment is shown faded. */
+button:disabled{opacity:.45;cursor:not-allowed;}
+/* The status line under the header says how many steps have run and whether the runner is running or paused. */
+#status{font-size:12.5px;color:var(--muted);margin:2px 0 10px;}
+/* The main area has two columns: the listing on the left and the visualisation on the right. */
+main{display:grid;grid-template-columns:1fr 1.15fr;gap:12px;}
+/* On a screen narrower than 900 pixels the two columns are placed one under the other. */
+@media (max-width:900px){main{grid-template-columns:1fr;}}
+/* Each panel is a white card with a thin border. */
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0;}
+/* The execution window spans both columns, so that long result lines stay readable. */
+.card.wide{grid-column:1 / -1;}
+/* The heading of a panel is a small label in capital letters. */
+.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;}
+/* The listing is a scrolling box with a monospace font, so that code lines keep their alignment. */
+#listing{max-height:520px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;line-height:1.5;border:1px solid var(--line);border-radius:8px;background:#fffdf9;}
+/* One line of the listing: its number on the left, its text on the right; long lines wrap instead of being cut. */
+.ln{display:flex;gap:8px;padding:0 8px;white-space:pre-wrap;word-break:break-word;}
+/* The line number is grey and is not selected when the text is copied with the mouse. */
+.ln i{color:#b3aca2;font-style:normal;min-width:22px;text-align:right;user-select:none;flex:none;}
+/* A comment line of the listing is written in muted italics, to separate the explanation from the code. */
+.ln.cm span{color:var(--muted);font-style:italic;}
+/* The lines of the statement that is being executed get an amber background and a rust bar on the left. */
+.ln.cur{background:var(--amber-l);box-shadow:inset 3px 0 0 var(--rust);}
+/* The drawing scales with the width of its panel and keeps its proportions. */
+svg{width:100%;height:auto;display:block;}
+/* The execution window is a scrolling box in a monospace font: one step, one or more lines. */
+#log{height:230px;overflow:auto;background:#fffdf9;border:1px solid var(--line);border-radius:8px;padding:8px;font-family:ui-monospace,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;}
+/* Four kinds of line in the execution window: the statement (bold), its result (teal), an error (rust), a reading in plain words (ink). */
+.st{font-weight:700;} .rs{color:var(--teal);} .er{color:var(--rust);font-weight:600;} .rd{color:var(--ink);font-style:italic;}
+/* The small table under the drawing lists results that stay on screen after the run. */
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+/* Its cells have a thin line underneath and a little padding. */
+td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top;}
+/* The hidden text area is only used to copy text on browsers that do not allow the clipboard interface. */
+#copybuf{position:absolute;left:-9999px;top:-9999px;}
+</style>
+</head>
+<!-- The body holds everything that is drawn: the header with the buttons, the status line, the three panels. -->
+<body>
+<!-- The header: the title of the example and the controls asked for in the lecture (copy, start / pause, restart, downloads). -->
+<header>
+<!-- The title names the example and the lesson it belongs to. -->
+<h1>Example 1 — Course calendar and grade query runner (Lesson 1)</h1>
+<!-- The group of buttons; each button calls one function of the script at the end of the page. -->
+<div>
+<!-- Start / Pause: one button that starts the automatic run, pauses it, and resumes it from the same step. -->
+<button id="btnStart" class="primary" onclick="toggleRun()">▶ Start</button>
+<!-- Step: executes exactly one step and stops, so that the step can be discussed. -->
+<button id="btnStep" onclick="stepOnce()">Step</button>
+<!-- Restart: clears the execution window and the drawing and goes back to the first step. -->
+<button id="btnRestart" onclick="restart()">↺ Restart</button>
+<!-- Copy code: copies the listing (the SQL code with its comments) to the clipboard. -->
+<button onclick="copyListing()">Copy code</button>
+<!-- Download code: saves the listing as a file that can be run outside the browser. -->
+<button onclick="downloadListing()">⬇ .sql</button>
+<!-- Download page: saves this whole example as one HTML file. -->
+<button onclick="downloadHTML()">⬇ HTML</button>
+<!-- Download the drawing as a vector picture, in its current state. -->
+<button onclick="downloadSVG()">⬇ SVG</button>
+<!-- Download the drawing as a bitmap picture, in its current state. -->
+<button onclick="downloadPNG()">⬇ PNG</button>
+<!-- Copy the text of the execution window, for example to paste it into a lab report. -->
+<button onclick="copyLog()">Copy steps</button>
+</div>
+</header>
+<!-- The status line; the script writes into it after every step. -->
+<p id="status"></p>
+<!-- The main area with the three panels. -->
+<main>
+<!-- Panel 1: the listing, with the current statement highlighted. -->
+<section class="card">
+<!-- The label of the panel names the language of the listing. -->
+<h2>The code — SQL, one comment before every line</h2>
+<!-- The script fills this box with the lines of the listing. -->
+<div id="listing"></div>
+</section>
+<!-- Panel 2: the visualisation that changes while the code runs. -->
+<section class="card">
+<!-- The label of the panel says what the drawing shows. -->
+<h2>The calendar of the course and the grade bar — they change with every statement</h2>
+<!-- The drawing; the script creates its shapes and changes them at every step. -->
+<svg id="viz" viewBox="0 0 760 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The calendar of the course and the grade bar — they change with every statement"></svg>
+<!-- A place under the drawing for a results table. -->
+<div id="extra"></div>
+</section>
+<!-- Panel 3: the execution window, where every step is written so that a paused run can be analysed. -->
+<section class="card wide">
+<!-- The label of the panel. -->
+<h2>Execution window — every step is written here</h2>
+<!-- aria-live lets a screen reader announce each new line. -->
+<div id="log" aria-live="polite"></div>
+</section>
+</main>
+<!-- The hidden text area used by the copy fallback. -->
+<textarea id="copybuf" aria-hidden="true"></textarea>
+<!-- The script: first the data of this example, then its steps, then the runner that all examples share. -->
+<script>
+// ---------- the data of this example ----------
+// The rows of the table 'classes' — number, date, place, kind, title — the same values as in the INSERT statements of the listing.
+var CLASSES = [[1, "2026-11-23", "campus", "lecture", "Welcome, and why databases exist"], [2, "2026-11-24", "campus", "lecture", "Flat files and file-based databases"], [3, "2026-11-25", "campus", "lecture", "Designing a database: from business rules to tables"], [4, "2026-11-26", "campus", "lecture", "Building it in PostgreSQL: create and populate"], [5, "2026-11-30", "campus", "lecture", "Asking across tables: joins"], [6, "2026-12-01", "online", "self-paced", "Summarising data: aggregates and groups"], [7, "2026-12-02", "online", "review", "Mid-term review"], [8, "2026-12-03", "campus", "exam", "Mid-term exam"], [9, "2026-12-09", "online", "lecture", "Advanced queries and logical functions"], [10, "2026-12-10", "online", "lecture", "Reusable SQL, and connecting to Python or R"], [11, "2026-12-14", "online", "lecture", "Beyond tables: non-relational databases"], [12, "2026-12-15", "online", "lecture", "Big data and blockchain"], [13, "2026-12-16", "online", "review", "Final exam review"], [14, "2026-12-17", "campus", "exam", "Final exam and course feedback"]];
+// The lines of the listing shown on the left, exactly as they are saved in the downloadable .sql file.
+var LISTING = ["-- Table 'classes': one row per class meeting. class_no is the primary key, so no class number can be stored twice.", "CREATE TABLE classes (class_no INTEGER PRIMARY KEY, class_date DATE NOT NULL, place TEXT NOT NULL, kind TEXT NOT NULL, title TEXT NOT NULL);", "-- Week 1, 23 to 26 November: four classes on campus.", "INSERT INTO classes VALUES (1, '2026-11-23', 'campus', 'lecture', 'Welcome, and why databases exist'), (2, '2026-11-24', 'campus', 'lecture', 'Flat files and file-based databases'), (3, '2026-11-25', 'campus', 'lecture', 'Designing a database: from business rules to tables'), (4, '2026-11-26', 'campus', 'lecture', 'Building it in PostgreSQL: create and populate');", "-- Week 2, 30 November to 3 December: the last campus class, the self-paced day, the first live online class, the Mid-term.", "INSERT INTO classes VALUES (5, '2026-11-30', 'campus', 'lecture', 'Asking across tables: joins'), (6, '2026-12-01', 'online', 'self-paced', 'Summarising data: aggregates and groups'), (7, '2026-12-02', 'online', 'review', 'Mid-term review'), (8, '2026-12-03', 'campus', 'exam', 'Mid-term exam');", "-- Week 3, 9 and 10 December: two live online classes (no class on 7 and 8 December).", "INSERT INTO classes VALUES (9, '2026-12-09', 'online', 'lecture', 'Advanced queries and logical functions'), (10, '2026-12-10', 'online', 'lecture', 'Reusable SQL, and connecting to Python or R');", "-- Week 4, 14 to 17 December: three live online classes and the Final.", "INSERT INTO classes VALUES (11, '2026-12-14', 'online', 'lecture', 'Beyond tables: non-relational databases'), (12, '2026-12-15', 'online', 'lecture', 'Big data and blockchain'), (13, '2026-12-16', 'online', 'review', 'Final exam review'), (14, '2026-12-17', 'campus', 'exam', 'Final exam and course feedback');", "-- Question 1: on which days is there an exam on campus? WHERE keeps only the rows whose kind is 'exam'.", "SELECT class_no, class_date, title FROM classes WHERE kind = 'exam' ORDER BY class_date;", "-- Question 2: which is the first class that is not on campus? MIN takes the earliest date among the online rows.", "SELECT MIN(class_date) AS first_online_day FROM classes WHERE place = 'online';", "-- Question 3: how many classes take place in each place? GROUP BY forms one group per place and COUNT counts its rows.", "SELECT place, COUNT(*) AS classes FROM classes GROUP BY place ORDER BY place;", "-- Table 'assessments': one row per graded component, with its weight and, when it is known, the mark.", "CREATE TABLE assessments (component TEXT PRIMARY KEY, weight NUMERIC(3,2) NOT NULL, mark NUMERIC(5,2));", "-- The three weights of the syllabus and the two marks that Lucía assumes; the Final has no mark yet (NULL means 'not known').", "INSERT INTO assessments VALUES ('Continuous work', 0.30, 85), ('Mid-term', 0.30, 78), ('Final', 0.40, NULL);", "-- Check: the three weights must add up to exactly 1, that is 100 per cent.", "SELECT SUM(weight) AS total_weight FROM assessments;", "-- Question 4: how many grade points are earned so far? Each known mark is multiplied by its weight and the products are added.", "SELECT SUM(weight * mark) AS points_so_far FROM assessments WHERE mark IS NOT NULL;", "-- Question 5: which Final mark gives a course grade of 83? The points still missing are divided by the weight of the Final.", "SELECT (83 - SUM(weight * mark)) / 0.40 AS final_mark_needed FROM assessments WHERE mark IS NOT NULL;"];
+// For each statement of the listing: the number of its first and of its last line, used to highlight the statement that is running.
+var STMT = {"create_classes": [0, 1], "week1": [2, 3], "week2": [4, 5], "week3": [6, 7], "week4": [8, 9], "q1": [10, 11], "q2": [12, 13], "q3": [14, 15], "create_assess": [16, 17], "ins_assess": [18, 19], "check": [20, 21], "q4": [22, 23], "q5": [24, 25]};
+// The characters that start a comment in the language of the listing.
+var CMT = "--";
+// The names under which the page, the drawing and the listing are downloaded.
+var FILEBASE = "IT505_Class01_example1_course_calendar", LISTFILE = "IT505_Class01_example1_course_calendar.sql";
+// ---------- example 1: the course calendar and the grade ----------
+// The rows inserted into the table 'classes' so far; the table starts empty and is filled by the INSERT statements.
+var loaded = [];
+// The rows of the table 'assessments': component, weight, mark; null means that the mark is not known yet.
+var ASSESS = [["Continuous work", 0.30, 85], ["Mid-term", 0.30, 78], ["Final", 0.40, null]];
+// Notes drawn in the calendar from the start; they come from the lab plan and are not rows of the table 'classes'.
+var NOTES = {"2026-11-23": "Lab 1 opens", "2026-11-30": "Lab 2 opens", "2026-12-06": "Lab 1 due 23:59", "2026-12-07": "no class", "2026-12-08": "no class", "2026-12-09": "Lab 3 opens", "2026-12-13": "Lab 2 due 23:59", "2026-12-20": "Lab 3 due 23:59"};
+// The fill colour and the border colour of a calendar cell: teal for campus, amber for online, rust for an exam.
+var COLORS = {campus: ["#E4F2F1", "#0E7C7B"], online: ["#FFF3CD", "#E0A106"], exam: ["#FBE9E9", "#B5440C"]};
+// The target course grade of the example: 83 points is the lowest mark of the letter B.
+var TARGET = 83;
+// Returns the date, written as year-month-day, of the day that lies n days after Monday 23 November 2026.
+function dayIso(n){ return new Date(Date.UTC(2026, 10, 23 + n)).toISOString().slice(0, 10); }
+// Draws the starting state: an empty calendar of 28 days in four weeks, and an empty grade bar.
+function resetView(){
+ // Empty the drawing and forget the rows loaded in a previous run.
+ var svg = document.getElementById("viz"); svg.innerHTML = ""; loaded = [];
+ // A white background, so that a downloaded picture is not transparent.
+ el(svg, "rect", {x: 0, y: 0, width: 760, height: 470, fill: "#ffffff"});
+ // The names of the seven weekdays above the columns.
+ ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach(function(w, i){ el(svg, "text", {x: 63 + i * 106, y: 18, "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: "#6B6560"}, w); });
+ // One cell for each of the 28 days.
+ for (var n = 0; n < 28; n++){
+  // The date of the cell and its position: seven columns, four rows.
+  var iso = dayIso(n), x = 10 + (n % 7) * 106, y = 26 + Math.floor(n / 7) * 78;
+  // The box of the day; its identifier contains the date, so that a step can find it.
+  el(svg, "rect", {id: "c-" + iso, x: x, y: y, width: 102, height: 74, rx: 6, fill: "#ffffff", stroke: "#E7E2D8", "stroke-width": 1.2});
+  // The day and the month in the corner of the box.
+  el(svg, "text", {x: x + 6, y: y + 14, "font-size": 10.5, fill: "#6B6560"}, Number(iso.slice(8)) + (iso.slice(5, 7) === "11" ? " Nov" : " Dec"));
+  // An empty text that will receive the class number when the row is loaded.
+  el(svg, "text", {id: "t-" + iso, x: x + 51, y: y + 36, "text-anchor": "middle", "font-size": 13, "font-weight": 700, fill: "#1C1917"}, "");
+  // An empty text that will receive the place and the kind of the class.
+  el(svg, "text", {id: "k-" + iso, x: x + 51, y: y + 51, "text-anchor": "middle", "font-size": 10.5, fill: "#1C1917"}, "");
+  // The fixed note of the day, when there is one (a lab opening, a deadline, a day without class).
+  if (NOTES[iso]) el(svg, "text", {x: x + 51, y: y + 67, "text-anchor": "middle", "font-size": 10, fill: "#B5440C"}, NOTES[iso]);
+ }
+ // The label of the grade bar.
+ el(svg, "text", {x: 10, y: 362, "font-size": 12, "font-weight": 700, fill: "#6B6560"}, "Course grade — points out of 100 (table 'assessments')");
+ // The empty frame of the bar: 740 pixels wide for 100 points, so one point is 7.4 pixels.
+ el(svg, "rect", {x: 10, y: 372, width: 740, height: 38, rx: 4, fill: "#ffffff", stroke: "#E7E2D8", "stroke-width": 1.2});
+ // A group that will hold the segments of the bar, so that they can be redrawn together.
+ el(svg, "g", {id: "bar"});
+ // A line of text under the bar for the conclusion of the last query.
+ el(svg, "text", {id: "barnote", x: 10, y: 444, "font-size": 12.5, fill: "#1C1917"}, "");
+}
+// Shows one loaded class in its calendar cell: colour, number, place and kind.
+function showClass(c){
+ // An exam gets the rust colours; any other class gets the colours of its place.
+ var col = COLORS[c[3] === "exam" ? "exam" : c[2]], r = document.getElementById("c-" + c[1]);
+ // Colour the box of the day.
+ r.setAttribute("fill", col[0]); r.setAttribute("stroke", col[1]);
+ // Write the class number.
+ document.getElementById("t-" + c[1]).textContent = "Class " + c[0];
+ // Write the place, and the kind when the class is not an ordinary lecture.
+ document.getElementById("k-" + c[1]).textContent = c[3] === "exam" ? "EXAM · campus" : c[2] + (c[3] === "lecture" ? "" : " · " + c[3]);
+}
+// Outlines the cells of the rows returned by a query, and removes the outline from every other loaded cell.
+function hit(rows){
+ // First give every loaded cell its thin border again.
+ loaded.forEach(function(c){ document.getElementById("c-" + c[1]).setAttribute("stroke-width", 1.2); });
+ // Then give the returned rows a thick border.
+ rows.forEach(function(c){ document.getElementById("c-" + c[1]).setAttribute("stroke-width", 5); });
+}
+// Draws one segment of the grade bar, from point a to point b, with a colour and a label.
+function seg(a, b, fill, label){
+ // The group of the bar.
+ var g = document.getElementById("bar");
+ // The coloured rectangle of the segment.
+ el(g, "rect", {x: 10 + a * 7.4, y: 372, width: (b - a) * 7.4, height: 38, fill: fill, stroke: "#ffffff", "stroke-width": 1});
+ // The label, centred in the segment.
+ el(g, "text", {x: 10 + (a + b) / 2 * 7.4, y: 396, "text-anchor": "middle", "font-size": 11, fill: "#1C1917"}, label);
+}
+// Adds up weight times mark over the components whose mark is known: the points earned so far.
+function earned(){ return ASSESS.reduce(function(a, r){ return r[2] === null ? a : a + r[1] * r[2]; }, 0); }
+// Prepares the list of steps: one function per SQL statement of the listing, in the same order.
+function buildSteps(){
+ // Start from an empty list.
+ STEPS = [];
+ // Statement 1 creates the table 'classes'; nothing is stored yet.
+ STEPS.push(function(){ mark("create_classes"); log("CREATE TABLE classes", "st"); log("→ table created: 5 columns, 0 rows. The calendar is still empty.", "rs"); });
+ // Statements 2 to 5 insert the classes of one week each; the calendar fills week by week.
+ [[1, 4, "week1"], [5, 8, "week2"], [9, 10, "week3"], [11, 14, "week4"]].forEach(function(w){
+  // One step per INSERT statement.
+  STEPS.push(function(){
+   // Highlight the statement and take the rows whose class number lies in the range of the week.
+   mark(w[2]); var rows = CLASSES.filter(function(c){ return c[0] >= w[0] && c[0] <= w[1]; });
+   // Store each row and show it in the calendar.
+   rows.forEach(function(c){ loaded.push(c); showClass(c); });
+   // Report the statement and the answer of the database ('INSERT 0 n' is how PostgreSQL confirms n new rows).
+   log("INSERT INTO classes — classes " + w[0] + " to " + w[1], "st"); log("→ INSERT 0 " + rows.length + "   (" + loaded.length + " rows in the table)", "rs");
+  });
+ });
+ // Statement 6, question 1: keep the rows whose kind is 'exam'.
+ STEPS.push(function(){
+  // Highlight the statement, apply the condition, outline the answer.
+  mark("q1"); var rows = loaded.filter(function(c){ return c[3] === "exam"; }); hit(rows);
+  // Write the statement and one result line per row.
+  log("Question 1 — SELECT class_no, class_date, title FROM classes WHERE kind = 'exam'", "st"); rows.forEach(function(c){ log("→ " + c[0] + " | " + c[1] + " | " + c[4], "rs"); });
+  // Write the reading in plain words and the decision it supports.
+  log("(" + rows.length + " rows) Reading: two exam days on campus. Decision: buy both return tickets today.", "rd");
+ });
+ // Statement 7, question 2: the earliest date among the online rows.
+ STEPS.push(function(){
+  // Highlight the statement, keep the online rows and take the one with the smallest date.
+  mark("q2"); var first = loaded.filter(function(c){ return c[2] === "online"; }).reduce(function(a, c){ return c[1] < a[1] ? c : a; }); hit([first]);
+  // Write the statement and its single result.
+  log("Question 2 — SELECT MIN(class_date) FROM classes WHERE place = 'online'", "st"); log("→ " + first[1], "rs");
+  // Write the reading and the decision.
+  log("(1 row) Reading: Class " + first[0] + " is the first class that is not on campus. Decision: test the laptop and the connection before that day.", "rd");
+ });
+ // Statement 8, question 3: one group per place, and the number of rows in each group.
+ STEPS.push(function(){
+  // Highlight the statement and count the rows of each place.
+  mark("q3"); var n = {}; loaded.forEach(function(c){ n[c[2]] = (n[c[2]] || 0) + 1; });
+  // Outline the campus classes, so that the group can be counted on screen.
+  hit(loaded.filter(function(c){ return c[2] === "campus"; }));
+  // Write the statement and one result line per group.
+  log("Question 3 — SELECT place, COUNT(*) FROM classes GROUP BY place", "st"); Object.keys(n).sort().forEach(function(k){ log("→ " + k + " | " + n[k], "rs"); });
+  // Write the reading and the decision.
+  log("(2 rows) Reading: " + n.campus + " classes on campus (outlined) and " + n.online + " online. Decision: " + n.campus + " return journeys in total.", "rd");
+ });
+ // Statement 9 creates the table 'assessments'.
+ STEPS.push(function(){ mark("create_assess"); hit([]); log("CREATE TABLE assessments", "st"); log("→ table created: 3 columns, 0 rows.", "rs"); });
+ // Statement 10 inserts the three weights and the two assumed marks; the bar shows the three weights.
+ STEPS.push(function(){
+  // Highlight the statement and draw one segment per component, as wide as its weight.
+  mark("ins_assess"); var a = 0; ASSESS.forEach(function(r, i){ seg(a, a + r[1] * 100, ["#E4F2F1", "#D3EAE8", "#F3EFE8"][i], r[0] + " " + Math.round(r[1] * 100) + " %"); a += r[1] * 100; });
+  // Report the statement and the answer of the database.
+  log("INSERT INTO assessments — three weights, two assumed marks (85 and 78), the Final still unknown (NULL)", "st"); log("→ INSERT 0 3", "rs");
+ });
+ // Statement 11 checks that the weights add up to 1.
+ STEPS.push(function(){
+  // Highlight the statement and add the three weights.
+  mark("check"); var s = ASSESS.reduce(function(a, r){ return a + r[1]; }, 0);
+  // Write the statement, the result and the reading.
+  log("Check — SELECT SUM(weight) FROM assessments", "st"); log("→ " + f2(s), "rs"); log("(1 row) Reading: the three weights add up to 1, that is 100 %.", "rd");
+ });
+ // Statement 12, question 4: the points earned so far.
+ STEPS.push(function(){
+  // Highlight the statement, compute the points, and redraw the bar with the two earned parts.
+  mark("q4"); var e = earned(), c1 = ASSESS[0][1] * ASSESS[0][2]; document.getElementById("bar").innerHTML = "";
+  // The first segment is the continuous work, the second one the Mid-term.
+  seg(0, c1, "#9FD3D1", "0.30 × 85 = " + f2(c1)); seg(c1, e, "#C9E6E4", "0.30 × 78 = " + f2(e - c1));
+  // Write the statement, the result and the reading.
+  log("Question 4 — SELECT SUM(weight * mark) FROM assessments WHERE mark IS NOT NULL", "st"); log("→ " + f2(e), "rs"); log("(1 row) Reading: " + f2(e) + " of the 100 grade points are earned before the Final.", "rd");
+ });
+ // Statement 13, question 5: the Final mark that brings the course grade to the target.
+ STEPS.push(function(){
+  // Highlight the statement and compute the missing points and the mark that gives them.
+  mark("q5"); var e = earned(), need = (TARGET - e) / ASSESS[2][1];
+  // Draw the missing part of the bar and a marker at the target.
+  seg(e, TARGET, "#F6C9A8", "Final: 0.40 × " + f2(need) + " = " + f2(TARGET - e)); el(document.getElementById("bar"), "line", {x1: 10 + TARGET * 7.4, y1: 366, x2: 10 + TARGET * 7.4, y2: 416, stroke: "#B5440C", "stroke-width": 2.5});
+  // Write the conclusion under the bar.
+  document.getElementById("barnote").textContent = TARGET + " points is the lowest mark of the letter B. The Final must be at least " + f2(need) + ": plan for " + Math.ceil(need) + ".";
+  // Write the statement, the result and the reading with the decision.
+  log("Question 5 — SELECT (83 - SUM(weight * mark)) / 0.40 FROM assessments WHERE mark IS NOT NULL", "st"); log("→ " + f2(need), "rs"); log("(1 row) Reading: a B needs " + f2(need) + " on the Final. Decision: plan the revision for " + Math.ceil(need) + ".", "rd");
+ });
+}
+// ---------- the runner shared by all examples of the lecture ----------
+// The list of steps; buildSteps() of the example fills it with one function per step.
+var STEPS = [];
+// The cursor is the number of the next step to execute; Pause keeps it, so Start resumes from the same place.
+var cursor = 0;
+// The timer of the automatic run; null means that the runner is paused.
+var timer = null;
+// The pause between two automatic steps, in milliseconds, long enough to read one line aloud.
+var DELAY = 1600;
+// The namespace that the browser needs to create SVG shapes.
+var NS = "http://www.w3.org/2000/svg";
+// Creates one SVG shape with its attributes and optional text, adds it to a parent and returns it.
+function el(parent, tag, attrs, text){
+ // Create the shape in the SVG namespace.
+ var e = document.createElementNS(NS, tag);
+ // Copy every attribute (position, size, colours) onto the shape.
+ for (var k in attrs) e.setAttribute(k, attrs[k]);
+ // Put the text inside the shape when a text was given.
+ if (text !== undefined) e.textContent = text;
+ // Attach the shape to its parent so that it is drawn.
+ parent.appendChild(e);
+ // Return the shape so that the caller can change it later.
+ return e;
+}
+// Formats a number with two decimals, as money and marks are shown in the lecture.
+function f2(x){ return (Math.round(x * 100) / 100).toFixed(2); }
+// Draws the listing: one numbered line per line of code or comment.
+function renderListing(){
+ // Find the box of the listing and empty it.
+ var box = document.getElementById("listing"); box.innerHTML = "";
+ // Go through the lines of the listing in order.
+ LISTING.forEach(function(text, i){
+  // One line is a row with a number and the text.
+  var d = document.createElement("div"); d.className = "ln"; d.id = "L" + i;
+  // A line whose first visible characters are the comment mark is styled as a comment.
+  if (text.replace(/^\s+/, "").indexOf(CMT) === 0) d.className += " cm";
+  // The line number, starting at 1.
+  var n = document.createElement("i"); n.textContent = i + 1; d.appendChild(n);
+  // The text of the line; textContent keeps special characters as plain text.
+  var s = document.createElement("span"); s.textContent = text; d.appendChild(s);
+  // Add the row to the box.
+  box.appendChild(d);
+ });
+}
+// Highlights the lines of one statement (given by its tag) and scrolls the listing so that they are visible.
+function mark(tag){
+ // Remove the highlight of the previous statement.
+ document.querySelectorAll(".ln.cur").forEach(function(d){ d.classList.remove("cur"); });
+ // Look up the first and the last line of the statement; leave if the tag is unknown.
+ var r = STMT[tag]; if (!r) return;
+ // Highlight every line of the range, comment line included.
+ for (var i = r[0]; i <= r[1]; i++) document.getElementById("L" + i).classList.add("cur");
+ // Scroll inside the listing box only, so that the page itself does not jump.
+ var box = document.getElementById("listing"), first = document.getElementById("L" + r[0]); box.scrollTop = Math.max(0, first.offsetTop - box.offsetTop - 40);
+}
+// Writes one line into the execution window; cls selects the style (st, rs, er, rd).
+function log(text, cls){
+ // Create the line and set its style.
+ var d = document.createElement("div"); d.className = cls || ""; d.textContent = text;
+ // Add it to the window and scroll to the newest line.
+ var box = document.getElementById("log"); box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+// Refreshes the status line and the labels and states of the buttons.
+function updateStatus(){
+ // True when every step has been executed.
+ var done = cursor >= STEPS.length;
+ // The sentence under the header: running or paused, and how far the run is.
+ document.getElementById("status").textContent = (timer ? "Running — " : "Paused — ") + "step " + cursor + " of " + STEPS.length + (done ? " — finished. Restart to run again." : ". Start runs by itself; Step runs one step.");
+ // The main button says Pause while running, Start at the beginning or the end, Resume in between.
+ document.getElementById("btnStart").textContent = timer ? "⏸ Pause" : (cursor === 0 || done ? "▶ Start" : "▶ Resume");
+ // Step cannot be used while the runner runs by itself, or when nothing is left.
+ document.getElementById("btnStep").disabled = !!timer || done;
+}
+// Executes exactly one step: the one at the cursor.
+function stepOnce(){
+ // Nothing left: stop the timer and leave.
+ if (cursor >= STEPS.length){ pause(); return; }
+ // Run the step, then move the cursor to the next one.
+ STEPS[cursor](); cursor++;
+ // After the last step the automatic run stops by itself.
+ if (cursor >= STEPS.length) pause();
+ // Show the new state.
+ updateStatus();
+}
+// Starts or resumes the automatic run from the cursor.
+function run(){
+ // Already running: do nothing.
+ if (timer) return;
+ // One step every DELAY milliseconds.
+ timer = setInterval(stepOnce, DELAY);
+ // The first step runs at once, so that the click has an immediate effect.
+ stepOnce();
+ // Show the new state.
+ updateStatus();
+}
+// Pauses the automatic run; the cursor is kept.
+function pause(){
+ // Stop the timer when there is one.
+ if (timer){ clearInterval(timer); timer = null; }
+ // Show the new state.
+ updateStatus();
+}
+// The single Start / Pause button: pause when running, otherwise run (from the start again when the run had finished).
+function toggleRun(){
+ // A finished run starts again from the first step.
+ if (!timer && cursor >= STEPS.length) restart();
+ // Switch between the two states.
+ if (timer) pause(); else run();
+}
+// Restart: stop, empty the execution window, redraw the first state, rebuild the steps.
+function restart(){
+ // Stop the automatic run and go back to step 0.
+ pause(); cursor = 0;
+ // Empty the execution window and remove the highlight in the listing.
+ document.getElementById("log").innerHTML = ""; mark("none");
+ // Let the example draw its starting state and prepare its steps again.
+ resetView(); buildSteps();
+ // Tell the user what to do next.
+ log("Ready. Press Start, or Step to go one step at a time.", "rd"); updateStatus();
+}
+// Copies a text to the clipboard and reports it in the execution window.
+function copyText(text, what){
+ // The modern clipboard interface, when the browser allows it in this context.
+ if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){ log(what + " copied to the clipboard (" + text.length + " characters).", "rd"); }, function(){ copyFallback(text, what); }); }
+ // Otherwise the hidden text area is used.
+ else copyFallback(text, what);
+}
+// The fallback: put the text in the hidden text area, select it and run the copy command.
+function copyFallback(text, what){
+ // Fill and select the hidden text area.
+ var ta = document.getElementById("copybuf"); ta.value = text; ta.select();
+ // Run the copy command and report success or failure.
+ try { document.execCommand("copy"); log(what + " copied to the clipboard.", "rd"); } catch (e){ log("Copy failed: select the text by hand and copy it.", "er"); }
+}
+// The listing as one text, exactly as it is saved in the downloadable file.
+function listingText(){ return LISTING.join("\n") + "\n"; }
+// Copy code: the listing with its comments.
+function copyListing(){ copyText(listingText(), "The code"); }
+// Copy steps: the text of the execution window.
+function copyLog(){ copyText(document.getElementById("log").innerText, "The steps"); }
+// Saves a piece of content as a file with the given name.
+function saveBlob(blob, name){
+ // Make a temporary address for the content and a link that points to it.
+ var url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = name;
+ // Click the link to start the download, then remove it.
+ document.body.appendChild(a); a.click(); document.body.removeChild(a);
+ // Release the temporary address a moment later.
+ setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+}
+// Download the listing as a file that runs outside the browser.
+function downloadListing(){ saveBlob(new Blob([listingText()], {type: "text/plain"}), LISTFILE); }
+// The complete source of this page, comments included.
+function pageSource(){ return "<!DOCTYPE html>\n" + document.documentElement.outerHTML; }
+// Download this page as one HTML file.
+function downloadHTML(){ saveBlob(new Blob([pageSource()], {type: "text/html"}), FILEBASE + ".html"); }
+// The drawing as SVG text, in its current state; all colours are attributes, so the file needs no style sheet.
+function svgText(){ return new XMLSerializer().serializeToString(document.getElementById("viz")); }
+// Download the drawing as a vector file.
+function downloadSVG(){ saveBlob(new Blob([svgText()], {type: "image/svg+xml"}), FILEBASE + ".svg"); }
+// Download the drawing as a bitmap: the SVG is loaded into an image, painted on a canvas and exported.
+function downloadPNG(){
+ // The size of the drawing, taken from its viewBox, doubled for a sharp picture.
+ var vb = document.getElementById("viz").viewBox.baseVal, img = new Image();
+ // When the image is ready: white background, draw, export.
+ img.onload = function(){ var c = document.createElement("canvas"); c.width = vb.width * 2; c.height = vb.height * 2; var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height); c.toBlob(function(b){ saveBlob(b, FILEBASE + ".png"); }, "image/png"); };
+ // Load the SVG text as the source of the image.
+ img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgText());
+}
+// Keyboard shortcuts for the projector: space = Start / Pause, right arrow = Step, r = Restart.
+document.addEventListener("keydown", function(e){ if (e.key === " "){ e.preventDefault(); toggleRun(); } else if (e.key === "ArrowRight"){ if (!timer) stepOnce(); } else if (e.key === "r"){ restart(); } });
+// When the page has loaded: draw the listing, then put the example in its starting state.
+renderListing(); restart();
+</script>
+</body>
+</html>

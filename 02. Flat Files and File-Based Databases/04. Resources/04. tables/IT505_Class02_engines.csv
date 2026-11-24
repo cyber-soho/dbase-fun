@@ -1,0 +1,11 @@
+﻿Property,SQLite,DuckDB
+Built for,many small reads and writes (OLTP) by one application,analytical questions over many rows and few columns (OLAP)
+Storage layout,"rows, in B-tree pages","columns, compressed, in row groups"
+Execution,one row at a time,"vectorised: batches of up to 2,048 values"
+Types,"type affinity: 'two' stored as text in an INTEGER column, unless STRICT",strict: 'two' refused with a Conversion Error
+Writers,"unlimited readers, one writer at any instant",one process can write a database file; others may read
+Reading files in SQL,no; import with the CLI (.import --csv) or Python,yes: SELECT … FROM 'file.csv' / read_csv / Parquet / JSON
+Licence,public domain,MIT (DuckDB Foundation holds the IP)
+Current version (22 Nov 2026),3.54.1 (16 October 2026),2.0.0 LTS (21 October 2026); 2.0.1 on PyPI
+File created by Example 2,"stall.sqlite — 8,192 bytes","mercadillo.duckdb — 536,576 bytes"
+Typical place,"phones, browsers, desktop programs, small sites","notebooks, analysis scripts, data pipelines, DBeaver"

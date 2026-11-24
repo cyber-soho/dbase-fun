@@ -1,0 +1,5 @@
+﻿Decision,What it is,How to check it,Answer for the excerpt,What goes wrong if it is guessed wrong
+Delimiter,the character between fields,look at the header line,comma,"every line becomes one single field, or fields split in the wrong places"
+Quote character,encloses a field that contains the delimiter,find a value with a comma,double quote,values with commas split into two fields; a malformed line
+Header,first line holds field names,does line 1 look different from the rest?,"yes, 13 names","the names become a data row, or the first data row becomes the names"
+Text encoding,rule that turns characters into bytes,read the bytes; look for EF BB BF; decode an accented letter,UTF-8 without BOM (á = C3 A1),mojibake (AlcalÃ¡); a BOM glued to the first column name

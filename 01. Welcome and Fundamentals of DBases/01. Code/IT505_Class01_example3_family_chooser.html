@@ -1,0 +1,417 @@
+<!-- The document type declaration switches the browser to standards mode, so that layout and scripts behave the same everywhere. -->
+<!DOCTYPE html>
+<!-- The root element; lang="en" tells screen readers and spell-checkers that the text is English. -->
+<html lang="en">
+<!-- The head holds the metadata, the title and the styles; nothing in it is drawn on the page. -->
+<head>
+<!-- UTF-8 is declared so that accents, the euro sign and arrows are displayed correctly. -->
+<meta charset="utf-8">
+<!-- The viewport rule lets the page fit the width of a phone or a tablet. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The title is shown on the browser tab and names the example. -->
+<title>IT 505 - Class 1 - Example 3 - Database family chooser</title>
+<!-- All styles are written here; the page loads nothing from the network, so it also works offline. -->
+<style>
+/* The colours of the Cyber.SoHo light theme: warm paper, deep teal, rust for warnings, amber for the current step. */
+:root{--paper:#FAF7F2;--ink:#1C1917;--teal:#0E7C7B;--teal-l:#E4F2F1;--rust:#B5440C;--rust-l:#FBE9E9;--amber-l:#FFF3CD;--line:#E7E2D8;--muted:#6B6560;--ok:#0d8a6a;}
+/* The page uses the fonts already installed on the computer, the paper colour, and a small margin so that it fits inside the lecture module. */
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--paper);color:var(--ink);margin:0;padding:12px;font-size:14px;}
+/* The header places the title on the left and the buttons on the right, and wraps on a narrow screen. */
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px;}
+/* The title is small and teal, so that the example is recognised as part of the lecture module. */
+h1{font-size:16px;margin:0;color:var(--teal);}
+/* Every button has the same look: teal border, rounded corners, and a pointer cursor to show that it can be clicked. */
+button{border:1px solid var(--teal);background:#fff;color:var(--teal);border-radius:6px;padding:6px 10px;cursor:pointer;font:inherit;font-size:13px;margin:2px 0;}
+/* The Start / Pause button is filled with teal, because it is the button used most. */
+button.primary{background:var(--teal);color:#fff;}
+/* A button that cannot be used at the moment is shown faded. */
+button:disabled{opacity:.45;cursor:not-allowed;}
+/* The status line under the header says how many steps have run and whether the runner is running or paused. */
+#status{font-size:12.5px;color:var(--muted);margin:2px 0 10px;}
+/* The main area has two columns: the listing on the left and the visualisation on the right. */
+main{display:grid;grid-template-columns:1fr 1.15fr;gap:12px;}
+/* On a screen narrower than 900 pixels the two columns are placed one under the other. */
+@media (max-width:900px){main{grid-template-columns:1fr;}}
+/* Each panel is a white card with a thin border. */
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0;}
+/* The execution window spans both columns, so that long result lines stay readable. */
+.card.wide{grid-column:1 / -1;}
+/* The heading of a panel is a small label in capital letters. */
+.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;}
+/* The listing is a scrolling box with a monospace font, so that code lines keep their alignment. */
+#listing{max-height:520px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;line-height:1.5;border:1px solid var(--line);border-radius:8px;background:#fffdf9;}
+/* One line of the listing: its number on the left, its text on the right; long lines wrap instead of being cut. */
+.ln{display:flex;gap:8px;padding:0 8px;white-space:pre-wrap;word-break:break-word;}
+/* The line number is grey and is not selected when the text is copied with the mouse. */
+.ln i{color:#b3aca2;font-style:normal;min-width:22px;text-align:right;user-select:none;flex:none;}
+/* A comment line of the listing is written in muted italics, to separate the explanation from the code. */
+.ln.cm span{color:var(--muted);font-style:italic;}
+/* The lines of the statement that is being executed get an amber background and a rust bar on the left. */
+.ln.cur{background:var(--amber-l);box-shadow:inset 3px 0 0 var(--rust);}
+/* The drawing scales with the width of its panel and keeps its proportions. */
+svg{width:100%;height:auto;display:block;}
+/* The execution window is a scrolling box in a monospace font: one step, one or more lines. */
+#log{height:230px;overflow:auto;background:#fffdf9;border:1px solid var(--line);border-radius:8px;padding:8px;font-family:ui-monospace,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;}
+/* Four kinds of line in the execution window: the statement (bold), its result (teal), an error (rust), a reading in plain words (ink). */
+.st{font-weight:700;} .rs{color:var(--teal);} .er{color:var(--rust);font-weight:600;} .rd{color:var(--ink);font-style:italic;}
+/* The small table under the drawing lists results that stay on screen after the run. */
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+/* Its cells have a thin line underneath and a little padding. */
+td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top;}
+/* The hidden text area is only used to copy text on browsers that do not allow the clipboard interface. */
+#copybuf{position:absolute;left:-9999px;top:-9999px;}
+</style>
+</head>
+<!-- The body holds everything that is drawn: the header with the buttons, the status line, the three panels. -->
+<body>
+<!-- The header: the title of the example and the controls asked for in the lecture (copy, start / pause, restart, downloads). -->
+<header>
+<!-- The title names the example and the lesson it belongs to. -->
+<h1>Example 3 — Database family chooser (Lesson 3)</h1>
+<!-- The group of buttons; each button calls one function of the script at the end of the page. -->
+<div>
+<!-- Start / Pause: one button that starts the automatic run, pauses it, and resumes it from the same step. -->
+<button id="btnStart" class="primary" onclick="toggleRun()">▶ Start</button>
+<!-- Step: executes exactly one step and stops, so that the step can be discussed. -->
+<button id="btnStep" onclick="stepOnce()">Step</button>
+<!-- Restart: clears the execution window and the drawing and goes back to the first step. -->
+<button id="btnRestart" onclick="restart()">↺ Restart</button>
+<!-- Copy code: copies the listing (the Python code with its comments) to the clipboard. -->
+<button onclick="copyListing()">Copy code</button>
+<!-- Download code: saves the listing as a file that can be run outside the browser. -->
+<button onclick="downloadListing()">⬇ .py</button>
+<!-- Download page: saves this whole example as one HTML file. -->
+<button onclick="downloadHTML()">⬇ HTML</button>
+<!-- Download the drawing as a vector picture, in its current state. -->
+<button onclick="downloadSVG()">⬇ SVG</button>
+<!-- Download the drawing as a bitmap picture, in its current state. -->
+<button onclick="downloadPNG()">⬇ PNG</button>
+<!-- Copy the text of the execution window, for example to paste it into a lab report. -->
+<button onclick="copyLog()">Copy steps</button>
+</div>
+</header>
+<!-- The status line; the script writes into it after every step. -->
+<p id="status"></p>
+<!-- The main area with the three panels. -->
+<main>
+<!-- Panel 1: the listing, with the current statement highlighted. -->
+<section class="card">
+<!-- The label of the panel names the language of the listing. -->
+<h2>The code — Python, one comment before every line</h2>
+<!-- The script fills this box with the lines of the listing. -->
+<div id="listing"></div>
+</section>
+<!-- Panel 2: the visualisation that changes while the code runs. -->
+<section class="card">
+<!-- The label of the panel says what the drawing shows. -->
+<h2>The path through the four tests to one of the five families</h2>
+<!-- The drawing; the script creates its shapes and changes them at every step. -->
+<svg id="viz" viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The path through the four tests to one of the five families"></svg>
+<!-- A place under the drawing for a results table. -->
+<div id="extra"></div>
+</section>
+<!-- Panel 3: the execution window, where every step is written so that a paused run can be analysed. -->
+<section class="card wide">
+<!-- The label of the panel. -->
+<h2>Execution window — every step is written here</h2>
+<!-- aria-live lets a screen reader announce each new line. -->
+<div id="log" aria-live="polite"></div>
+</section>
+</main>
+<!-- The hidden text area used by the copy fallback. -->
+<textarea id="copybuf" aria-hidden="true"></textarea>
+<!-- The script: first the data of this example, then its steps, then the runner that all examples share. -->
+<script>
+// ---------- the data of this example ----------
+// The seven systems with the facts observed about each: the same values as in the list SYSTEMS of the listing.
+var SYSTEMS = [{"name": "Monthly export for the accountant", "shared": false, "too_big": false, "one_table": true, "same_fields": true, "transactions": false, "question": "whole table"}, {"name": "A bank's account transfers", "shared": false, "too_big": false, "one_table": false, "same_fields": true, "transactions": true, "question": "related rows"}, {"name": "A web shop's shopping cart", "shared": false, "too_big": false, "one_table": false, "same_fields": false, "transactions": false, "question": "by key"}, {"name": "A product catalogue", "shared": false, "too_big": false, "one_table": false, "same_fields": false, "transactions": false, "question": "whole record"}, {"name": "A social network", "shared": false, "too_big": false, "one_table": false, "same_fields": true, "transactions": false, "question": "path"}, {"name": "A sensor feed", "shared": false, "too_big": true, "one_table": true, "same_fields": true, "transactions": false, "question": "summary"}, {"name": "A land registry shared by several authorities", "shared": true, "too_big": false, "one_table": false, "same_fields": true, "transactions": true, "question": "related rows"}];
+// The four tests in the order of the function: the facts that must all be true, the family returned, the reason, the label drawn in the box.
+var TESTS = [{"keys": ["shared"], "fam": "5 Blockchain", "box": "F5", "why": "independent organisations share a history that must not be altered", "q": "do several independent organisations share the record, with a history that must not be altered", "label": ["Independent owners,", "unalterable history?"]}, {"keys": ["too_big"], "fam": "4 Big data", "box": "F4", "why": "the volume or the speed of arrival exceeds one machine", "q": "does the volume or the speed of arrival exceed one machine", "label": ["Too much for", "one machine?"]}, {"keys": ["one_table"], "fam": "1 Flat and file-based", "box": "F1", "why": "one table, one reader, no simultaneous writers", "q": "is it one table with a single reader or writer", "label": ["One table, one", "reader or writer?"]}, {"keys": ["same_fields", "transactions"], "fam": "2 Relational", "box": "F2", "why": "identical fields and strict transactions under many writers", "q": "do all records have the same fields, with strict transactions", "label": ["Same fields and", "strict transactions?"]}];
+// The kind of non-relational database for each main question: the dictionary KINDS of the listing.
+var KINDS = {"by key": "key-value", "whole record": "document", "path": "graph", "wide rows": "wide-column"};
+// The lines of the listing shown on the left, exactly as they are saved in the downloadable .py file.
+var LISTING = ["# The seven systems. Each one is described by the facts observed about its data need: True means yes, False means no.", "SYSTEMS = [", "    # 1. One table of last month's order lines, read by one person.", "    dict(name=\"Monthly export for the accountant\", shared=False, too_big=False, one_table=True, same_fields=True, transactions=False, question=\"whole table\"),", "    # 2. Accounts and transfers: identical fields in every record, thousands of writers, strict transactions.", "    dict(name=\"A bank's account transfers\", shared=False, too_big=False, one_table=False, same_fields=True, transactions=True, question=\"related rows\"),", "    # 3. One small list per visitor, always read and replaced as a whole by its key.", "    dict(name=\"A web shop's shopping cart\", shared=False, too_big=False, one_table=False, same_fields=False, transactions=False, question=\"by key\"),", "    # 4. Products whose attributes differ from one kind of product to the next.", "    dict(name=\"A product catalogue\", shared=False, too_big=False, one_table=False, same_fields=False, transactions=False, question=\"whole record\"),", "    # 5. People and 'follows' relationships; the questions follow paths of several steps.", "    dict(name=\"A social network\", shared=False, too_big=False, one_table=False, same_fields=True, transactions=False, question=\"path\"),", "    # 6. 400 sensors, one reading every 10 seconds: about 3.5 million rows a day.", "    dict(name=\"A sensor feed\", shared=False, too_big=True, one_table=True, same_fields=True, transactions=False, question=\"summary\"),", "    # 7. Property titles used by several independent authorities; past entries must never change.", "    dict(name=\"A land registry shared by several authorities\", shared=True, too_big=False, one_table=False, same_fields=True, transactions=True, question=\"related rows\"),", "# End of the list of systems.", "]", "# The kind of non-relational database that fits each main question.", "KINDS = {\"by key\": \"key-value\", \"whole record\": \"document\", \"path\": \"graph\", \"wide rows\": \"wide-column\"}", "# The function receives one system and returns two values: the family that fits it, and the reason.", "def choose_family(s):", "    # Test 1: do several independent organisations share the record, and must its history stay unaltered?", "    if s[\"shared\"]:", "        # Yes: the function ends here and returns this family with its reason.", "        return \"5 Blockchain\", \"independent organisations share a history that must not be altered\"", "    # Test 2: does the volume, or the speed at which the data arrive, exceed what one machine can handle?", "    if s[\"too_big\"]:", "        # Yes: the function ends here and returns this family with its reason.", "        return \"4 Big data\", \"the volume or the speed of arrival exceeds one machine\"", "    # Test 3: is the data one table that a single person reads or writes?", "    if s[\"one_table\"]:", "        # Yes: the function ends here and returns this family with its reason.", "        return \"1 Flat and file-based\", \"one table, one reader, no simultaneous writers\"", "    # Test 4: do all records have the same fields, and must groups of changes succeed or fail together?", "    if s[\"same_fields\"] and s[\"transactions\"]:", "        # Yes: the function ends here and returns this family with its reason.", "        return \"2 Relational\", \"identical fields and strict transactions under many writers\"", "    # No test applied: the system is non-relational, and its main question selects the kind.", "    return \"3 Non-relational: \" + KINDS[s[\"question\"]], \"the main question is '\" + s[\"question\"] + \"'\"", "# Apply the function to every system, in the order of the list.", "for s in SYSTEMS:", "    # Ask the questions for this system; the two returned values are stored in two names.", "    family, reason = choose_family(s)", "    # Print one result line: the system, its family and the reason.", "    print(s[\"name\"], \"->\", family, \"(\" + reason + \")\")"];
+// For each statement of the listing: the number of its first and of its last line, used to highlight the statement that is running.
+var STMT = {"t1": [22, 23], "r1": [24, 25], "t2": [26, 27], "r2": [28, 29], "t3": [30, 31], "r3": [32, 33], "t4": [34, 35], "r4": [36, 37], "r5": [38, 39], "loop": [40, 45]};
+// The characters that start a comment in the language of the listing.
+var CMT = "#";
+// The names under which the page, the drawing and the listing are downloaded.
+var FILEBASE = "IT505_Class01_example3_family_chooser", LISTFILE = "IT505_Class01_example3_family_chooser.py";
+// ---------- example 3: the database family chooser ----------
+// The rows of the results table: one entry per system that has been classified.
+var results = [];
+// The position of the five columns of the drawing: tests 1 to 4 and the final question, each above its family.
+var COLX = [6, 156, 306, 456, 606];
+// The four kinds of non-relational database, in the order of the small boxes at the bottom of the drawing.
+var KINDLIST = ["key-value", "document", "graph", "wide-column"];
+// Draws the starting state: the card of the current system, the four tests, the five families and the four kinds.
+function resetView(){
+ // Empty the drawing, the results and the table under the drawing.
+ var svg = document.getElementById("viz"); svg.innerHTML = ""; results = []; document.getElementById("extra").innerHTML = "";
+ // A white background, so that a downloaded picture is not transparent.
+ el(svg, "rect", {x: 0, y: 0, width: 760, height: 400, fill: "#ffffff"});
+ // The card that shows which system is being classified and the facts observed about it.
+ el(svg, "rect", {x: 6, y: 6, width: 748, height: 62, rx: 8, fill: "#E4F2F1", stroke: "#0E7C7B"});
+ // The name of the system (empty until the first step).
+ el(svg, "text", {id: "sysname", x: 16, y: 30, "font-size": 15, "font-weight": 700, fill: "#0A5F5E"}, "Press Start to load the first system");
+ // The observed facts of the system, on one line.
+ el(svg, "text", {id: "sysfacts", x: 16, y: 52, "font-size": 11.5, fill: "#1C1917"}, "");
+ // The four tests, each in its own column, in the order in which the function asks them.
+ TESTS.forEach(function(t, i){
+  // The box of the test; the identifier T1 … T4 lets a step colour it.
+  el(svg, "rect", {id: "T" + (i + 1), x: COLX[i], y: 90, width: 128, height: 62, rx: 8, fill: "#ffffff", stroke: "#0E7C7B", "stroke-width": 1.4});
+  // The number of the test.
+  el(svg, "text", {x: COLX[i] + 64, y: 108, "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: "#6B6560"}, "Test " + (i + 1));
+  // The question of the test, on two short lines.
+  t.label.forEach(function(line, j){ el(svg, "text", {x: COLX[i] + 64, y: 124 + j * 14, "text-anchor": "middle", "font-size": 10.5, fill: "#1C1917"}, line); });
+  // The arrow 'no' that leads to the next column.
+  el(svg, "text", {x: COLX[i] + 139, y: 118, "text-anchor": "middle", "font-size": 10, fill: "#6B6560"}, "no →");
+  // The arrow 'yes' that leads down to the family of this column.
+  el(svg, "text", {x: COLX[i] + 64, y: 172, "text-anchor": "middle", "font-size": 10, fill: "#6B6560"}, "yes ↓");
+  // The box of the family that this test leads to.
+  el(svg, "rect", {id: t.box, x: COLX[i], y: 182, width: 128, height: 48, rx: 8, fill: "#ffffff", stroke: "#0E7C7B", "stroke-width": 1.4});
+  // The name of the family.
+  el(svg, "text", {x: COLX[i] + 64, y: 211, "text-anchor": "middle", "font-size": 12.5, "font-weight": 700, fill: "#1C1917"}, t.fam);
+ });
+ // The fifth column: when all four tests answer no, the main question of the data decides.
+ el(svg, "rect", {id: "T5", x: COLX[4], y: 90, width: 128, height: 62, rx: 8, fill: "#ffffff", stroke: "#0E7C7B", "stroke-width": 1.4});
+ // The label of the fifth column, on three lines.
+ ["Otherwise", "what is the", "main question?"].forEach(function(line, j){ el(svg, "text", {x: COLX[4] + 64, y: 110 + j * 14, "text-anchor": "middle", "font-size": 11, fill: "#1C1917"}, line); });
+ // The box of the third family, non-relational.
+ el(svg, "rect", {id: "F3", x: COLX[4], y: 182, width: 128, height: 48, rx: 8, fill: "#ffffff", stroke: "#0E7C7B", "stroke-width": 1.4});
+ // The name of the third family.
+ el(svg, "text", {x: COLX[4] + 64, y: 211, "text-anchor": "middle", "font-size": 12.5, "font-weight": 700, fill: "#1C1917"}, "3 Non-relational");
+ // A line from the third family down to the row of its four kinds.
+ el(svg, "path", {d: "M 670 230 L 670 262 L 80 262 L 80 280", fill: "none", stroke: "#6B6560", "stroke-width": 1.2});
+ // The four kinds of non-relational database, with the main question that selects each one.
+ KINDLIST.forEach(function(k, i){
+  // The main question that leads to this kind, looked up in the table KINDS of the listing.
+  var q = Object.keys(KINDS).filter(function(x){ return KINDS[x] === k; })[0];
+  // The box of the kind.
+  el(svg, "rect", {id: "K-" + k, x: 6 + i * 188, y: 280, width: 180, height: 48, rx: 8, fill: "#ffffff", stroke: "#6B6560", "stroke-width": 1.2});
+  // The name of the kind.
+  el(svg, "text", {x: 96 + i * 188, y: 300, "text-anchor": "middle", "font-size": 12.5, "font-weight": 700, fill: "#1C1917"}, k);
+  // The main question written under the name.
+  el(svg, "text", {x: 96 + i * 188, y: 318, "text-anchor": "middle", "font-size": 10.5, fill: "#6B6560"}, "main question: " + q);
+ });
+ // A line of text at the bottom for the conclusion about the current system.
+ el(svg, "text", {id: "verdict", x: 6, y: 366, "font-size": 13, "font-weight": 700, fill: "#B5440C"}, "");
+}
+// Gives every box of the drawing its neutral colour again, before a new system is classified.
+function clearPath(){
+ // The five test boxes, the five family boxes and the four kind boxes become white.
+ ["T1", "T2", "T3", "T4", "T5", "F1", "F2", "F3", "F4", "F5"].concat(KINDLIST.map(function(k){ return "K-" + k; })).forEach(function(id){ document.getElementById(id).setAttribute("fill", "#ffffff"); });
+ // The conclusion of the previous system is removed.
+ document.getElementById("verdict").textContent = "";
+}
+// Writes yes or no for a fact, the way it is printed on the card of the system.
+function yn(v){ return v ? "yes" : "no"; }
+// Records the family of a system: fills the family box, writes the conclusion, adds a row to the results table.
+function conclude(s, fam, why, box, kind){
+ // Fill the box of the family, and the box of the kind when the family is non-relational.
+ document.getElementById(box).setAttribute("fill", "#9FD3D1"); if (kind) document.getElementById("K-" + kind).setAttribute("fill", "#9FD3D1");
+ // Write the conclusion under the drawing and in the execution window.
+ document.getElementById("verdict").textContent = s.name + "  →  " + fam; log("→ return \"" + fam + "\"   (" + why + ")", "rs");
+ // Store the result and redraw the results table.
+ results.push([s.name, fam, why]); var h = "<table><tr><th>System</th><th>Family</th><th>Reason</th></tr>"; results.forEach(function(r){ h += "<tr><td>" + r[0] + "</td><td>" + r[1] + "</td><td>" + r[2] + "</td></tr>"; }); document.getElementById("extra").innerHTML = h + "</table>";
+}
+// Prepares the list of steps: for each system, the tests that the function really executes, then the return.
+function buildSteps(){
+ // Start from an empty list; this example has many short steps, so the pause between them is shorter.
+ STEPS = []; DELAY = 1300;
+ // Go through the seven systems in the order of the listing.
+ SYSTEMS.forEach(function(s, n){
+  // Step: the loop takes the next system and shows its observed facts.
+  STEPS.push(function(){ mark("loop"); clearPath(); document.getElementById("sysname").textContent = "System " + (n + 1) + " of " + SYSTEMS.length + " — " + s.name; document.getElementById("sysfacts").textContent = "shared: " + yn(s.shared) + " · too big: " + yn(s.too_big) + " · one table: " + yn(s.one_table) + " · same fields: " + yn(s.same_fields) + " · transactions: " + yn(s.transactions) + " · main question: " + s.question; log("for s in SYSTEMS  —  system " + (n + 1) + ": " + s.name, "st"); });
+  // Find the first test whose facts are all true; -1 means that no test applies.
+  var k = -1; TESTS.forEach(function(t, i){ if (k < 0 && t.keys.every(function(key){ return s[key]; })) k = i; });
+  // One step per test that is executed: every test before the successful one answers no.
+  TESTS.forEach(function(t, i){
+   // Tests after the successful one are never reached by the function, so they get no step.
+   if (k >= 0 && i > k) return;
+   // The step of this test: highlight its line, colour its box, write the question and the observed answer.
+   STEPS.push(function(){ mark("t" + (i + 1)); document.getElementById("T" + (i + 1)).setAttribute("fill", "#FFF3CD"); log("Test " + (i + 1) + ": " + t.q + "?  " + t.keys.map(function(key){ return "s[\"" + key + "\"] is " + (s[key] ? "True" : "False"); }).join(" and ") + (i === k ? "  → yes" : "  → no, next test"), i === k ? "rd" : ""); });
+  });
+  // The return step when one of the four tests succeeded.
+  if (k >= 0) STEPS.push(function(){ mark("r" + (k + 1)); conclude(s, TESTS[k].fam, TESTS[k].why, TESTS[k].box, null); });
+  // The return step when none succeeded: the main question selects the kind of non-relational database.
+  else STEPS.push(function(){ mark("r5"); document.getElementById("T5").setAttribute("fill", "#FFF3CD"); conclude(s, "3 Non-relational: " + KINDS[s.question], "the main question is '" + s.question + "'", "F3", KINDS[s.question]); });
+ });
+ // The last step: all systems are classified.
+ STEPS.push(function(){ mark("none"); log("All " + SYSTEMS.length + " systems are classified. The table under the drawing is the template of the Lab 3 memo: system, family, reason.", "rd"); });
+}
+// ---------- the runner shared by all examples of the lecture ----------
+// The list of steps; buildSteps() of the example fills it with one function per step.
+var STEPS = [];
+// The cursor is the number of the next step to execute; Pause keeps it, so Start resumes from the same place.
+var cursor = 0;
+// The timer of the automatic run; null means that the runner is paused.
+var timer = null;
+// The pause between two automatic steps, in milliseconds, long enough to read one line aloud.
+var DELAY = 1600;
+// The namespace that the browser needs to create SVG shapes.
+var NS = "http://www.w3.org/2000/svg";
+// Creates one SVG shape with its attributes and optional text, adds it to a parent and returns it.
+function el(parent, tag, attrs, text){
+ // Create the shape in the SVG namespace.
+ var e = document.createElementNS(NS, tag);
+ // Copy every attribute (position, size, colours) onto the shape.
+ for (var k in attrs) e.setAttribute(k, attrs[k]);
+ // Put the text inside the shape when a text was given.
+ if (text !== undefined) e.textContent = text;
+ // Attach the shape to its parent so that it is drawn.
+ parent.appendChild(e);
+ // Return the shape so that the caller can change it later.
+ return e;
+}
+// Formats a number with two decimals, as money and marks are shown in the lecture.
+function f2(x){ return (Math.round(x * 100) / 100).toFixed(2); }
+// Draws the listing: one numbered line per line of code or comment.
+function renderListing(){
+ // Find the box of the listing and empty it.
+ var box = document.getElementById("listing"); box.innerHTML = "";
+ // Go through the lines of the listing in order.
+ LISTING.forEach(function(text, i){
+  // One line is a row with a number and the text.
+  var d = document.createElement("div"); d.className = "ln"; d.id = "L" + i;
+  // A line whose first visible characters are the comment mark is styled as a comment.
+  if (text.replace(/^\s+/, "").indexOf(CMT) === 0) d.className += " cm";
+  // The line number, starting at 1.
+  var n = document.createElement("i"); n.textContent = i + 1; d.appendChild(n);
+  // The text of the line; textContent keeps special characters as plain text.
+  var s = document.createElement("span"); s.textContent = text; d.appendChild(s);
+  // Add the row to the box.
+  box.appendChild(d);
+ });
+}
+// Highlights the lines of one statement (given by its tag) and scrolls the listing so that they are visible.
+function mark(tag){
+ // Remove the highlight of the previous statement.
+ document.querySelectorAll(".ln.cur").forEach(function(d){ d.classList.remove("cur"); });
+ // Look up the first and the last line of the statement; leave if the tag is unknown.
+ var r = STMT[tag]; if (!r) return;
+ // Highlight every line of the range, comment line included.
+ for (var i = r[0]; i <= r[1]; i++) document.getElementById("L" + i).classList.add("cur");
+ // Scroll inside the listing box only, so that the page itself does not jump.
+ var box = document.getElementById("listing"), first = document.getElementById("L" + r[0]); box.scrollTop = Math.max(0, first.offsetTop - box.offsetTop - 40);
+}
+// Writes one line into the execution window; cls selects the style (st, rs, er, rd).
+function log(text, cls){
+ // Create the line and set its style.
+ var d = document.createElement("div"); d.className = cls || ""; d.textContent = text;
+ // Add it to the window and scroll to the newest line.
+ var box = document.getElementById("log"); box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+// Refreshes the status line and the labels and states of the buttons.
+function updateStatus(){
+ // True when every step has been executed.
+ var done = cursor >= STEPS.length;
+ // The sentence under the header: running or paused, and how far the run is.
+ document.getElementById("status").textContent = (timer ? "Running — " : "Paused — ") + "step " + cursor + " of " + STEPS.length + (done ? " — finished. Restart to run again." : ". Start runs by itself; Step runs one step.");
+ // The main button says Pause while running, Start at the beginning or the end, Resume in between.
+ document.getElementById("btnStart").textContent = timer ? "⏸ Pause" : (cursor === 0 || done ? "▶ Start" : "▶ Resume");
+ // Step cannot be used while the runner runs by itself, or when nothing is left.
+ document.getElementById("btnStep").disabled = !!timer || done;
+}
+// Executes exactly one step: the one at the cursor.
+function stepOnce(){
+ // Nothing left: stop the timer and leave.
+ if (cursor >= STEPS.length){ pause(); return; }
+ // Run the step, then move the cursor to the next one.
+ STEPS[cursor](); cursor++;
+ // After the last step the automatic run stops by itself.
+ if (cursor >= STEPS.length) pause();
+ // Show the new state.
+ updateStatus();
+}
+// Starts or resumes the automatic run from the cursor.
+function run(){
+ // Already running: do nothing.
+ if (timer) return;
+ // One step every DELAY milliseconds.
+ timer = setInterval(stepOnce, DELAY);
+ // The first step runs at once, so that the click has an immediate effect.
+ stepOnce();
+ // Show the new state.
+ updateStatus();
+}
+// Pauses the automatic run; the cursor is kept.
+function pause(){
+ // Stop the timer when there is one.
+ if (timer){ clearInterval(timer); timer = null; }
+ // Show the new state.
+ updateStatus();
+}
+// The single Start / Pause button: pause when running, otherwise run (from the start again when the run had finished).
+function toggleRun(){
+ // A finished run starts again from the first step.
+ if (!timer && cursor >= STEPS.length) restart();
+ // Switch between the two states.
+ if (timer) pause(); else run();
+}
+// Restart: stop, empty the execution window, redraw the first state, rebuild the steps.
+function restart(){
+ // Stop the automatic run and go back to step 0.
+ pause(); cursor = 0;
+ // Empty the execution window and remove the highlight in the listing.
+ document.getElementById("log").innerHTML = ""; mark("none");
+ // Let the example draw its starting state and prepare its steps again.
+ resetView(); buildSteps();
+ // Tell the user what to do next.
+ log("Ready. Press Start, or Step to go one step at a time.", "rd"); updateStatus();
+}
+// Copies a text to the clipboard and reports it in the execution window.
+function copyText(text, what){
+ // The modern clipboard interface, when the browser allows it in this context.
+ if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){ log(what + " copied to the clipboard (" + text.length + " characters).", "rd"); }, function(){ copyFallback(text, what); }); }
+ // Otherwise the hidden text area is used.
+ else copyFallback(text, what);
+}
+// The fallback: put the text in the hidden text area, select it and run the copy command.
+function copyFallback(text, what){
+ // Fill and select the hidden text area.
+ var ta = document.getElementById("copybuf"); ta.value = text; ta.select();
+ // Run the copy command and report success or failure.
+ try { document.execCommand("copy"); log(what + " copied to the clipboard.", "rd"); } catch (e){ log("Copy failed: select the text by hand and copy it.", "er"); }
+}
+// The listing as one text, exactly as it is saved in the downloadable file.
+function listingText(){ return LISTING.join("\n") + "\n"; }
+// Copy code: the listing with its comments.
+function copyListing(){ copyText(listingText(), "The code"); }
+// Copy steps: the text of the execution window.
+function copyLog(){ copyText(document.getElementById("log").innerText, "The steps"); }
+// Saves a piece of content as a file with the given name.
+function saveBlob(blob, name){
+ // Make a temporary address for the content and a link that points to it.
+ var url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = name;
+ // Click the link to start the download, then remove it.
+ document.body.appendChild(a); a.click(); document.body.removeChild(a);
+ // Release the temporary address a moment later.
+ setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+}
+// Download the listing as a file that runs outside the browser.
+function downloadListing(){ saveBlob(new Blob([listingText()], {type: "text/plain"}), LISTFILE); }
+// The complete source of this page, comments included.
+function pageSource(){ return "<!DOCTYPE html>\n" + document.documentElement.outerHTML; }
+// Download this page as one HTML file.
+function downloadHTML(){ saveBlob(new Blob([pageSource()], {type: "text/html"}), FILEBASE + ".html"); }
+// The drawing as SVG text, in its current state; all colours are attributes, so the file needs no style sheet.
+function svgText(){ return new XMLSerializer().serializeToString(document.getElementById("viz")); }
+// Download the drawing as a vector file.
+function downloadSVG(){ saveBlob(new Blob([svgText()], {type: "image/svg+xml"}), FILEBASE + ".svg"); }
+// Download the drawing as a bitmap: the SVG is loaded into an image, painted on a canvas and exported.
+function downloadPNG(){
+ // The size of the drawing, taken from its viewBox, doubled for a sharp picture.
+ var vb = document.getElementById("viz").viewBox.baseVal, img = new Image();
+ // When the image is ready: white background, draw, export.
+ img.onload = function(){ var c = document.createElement("canvas"); c.width = vb.width * 2; c.height = vb.height * 2; var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height); c.toBlob(function(b){ saveBlob(b, FILEBASE + ".png"); }, "image/png"); };
+ // Load the SVG text as the source of the image.
+ img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgText());
+}
+// Keyboard shortcuts for the projector: space = Start / Pause, right arrow = Step, r = Restart.
+document.addEventListener("keydown", function(e){ if (e.key === " "){ e.preventDefault(); toggleRun(); } else if (e.key === "ArrowRight"){ if (!timer) stepOnce(); } else if (e.key === "r"){ restart(); } });
+// When the page has loaded: draw the listing, then put the example in its starting state.
+renderListing(); restart();
+</script>
+</body>
+</html>

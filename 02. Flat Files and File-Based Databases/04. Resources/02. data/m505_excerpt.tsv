@@ -1,0 +1,12 @@
+order_id	order_date	customer_name	customer_email	city	referred_by	product	category	producer	unit_price	quantity	payment_method	status
+M505-1041	2026-11-21	Lucía Fernández	lucia.fernandez@example.es	Madrid		Manchego cheese 250 g	Cheese	Quesería La Mancha	7.40	2	card	delivered
+M505-1041	2026-11-21	Lucía Fernández	lucia.fernandez@example.es	Madrid		Olive oil 1 L	Oil	Almazara del Sur	9.80	1	card	delivered
+M505-1042	21/11/2026	Javier Ortega	javier.ortega@example.es	MADRID	Lucía Fernández	Turrón 300 g	Sweets	Dulces de Jijona	6.90	3	Bizum	shipped
+M505-1043	2026-11-21	Ruiz, Marta	marta.ruiz@example.es	Alcalá de Henares		Saffron 1 g	Spices	Azafranes de Consuegra	5.50	4	transfer	delivered
+M505-1044	2026-11-21	Pablo Martín	pablo.martin@example.es	madrid	Javier Ortega	Olive-oil tortas, 6 units	Bakery	Hornos de Castilleja	4.20	2	card	delivered
+M505-1045	2026-11-21	Carmen Díaz	carmen.diaz@example.es	Madrid		Chorizo 200 g	Cured meats	Embutidos de Candelario	5.40		card	delivered
+M505-1046	2026-11-21	Sergio Gómez	sergio.gomez@example.es	Móstoles		Manchego cheese 250 g	Cheese	Quesería La Mancha	7.40	1		shipped
+M505-1047	2026-11-22	Elena Navarro	elena.navarro@example.es		Carmen Díaz	Olive oil 1 L	Oil	Almazara del Sur	9.80	2	cash on delivery	shipped
+M505-1041	2026-11-21	Lucía Fernández	lucia.fernandez@example.es	Madrid		Olive oil 1 L	Oil	Almazara del Sur	9.80	1	card	delivered
+M505-1049	22/11/2026	LUCÍA FERNÁNDEZ	lucia.fernandez@example.es	Madrid		Turrón 300 g	Sweets	Dulces de Jijona	6.90	1	Bizum	cancelled
+M505-1050	2026-11-22	Javier Ortega	javier.ortega@example.es	Madrid	Lucía Fernández	Saffron 1 g	Spices	Azafranes de Consuegra	5.50	2	card	delivered

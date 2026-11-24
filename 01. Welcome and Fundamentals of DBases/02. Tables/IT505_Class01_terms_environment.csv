@@ -1,0 +1,5 @@
+﻿Term,Definition,Example at Mercadillo 505
+Data,"Recorded representations of facts in a formalised form that can be stored, transmitted and processed","M505-1041, 2026-11-21, Madrid, Olive oil 1 L, 9.80, 2"
+Information,"Data processed and placed in a context, so that it has a meaning for the person who receives it",Madrid produced 67 % of Saturday's revenue
+Decision,"A choice between actions, taken on the basis of information",Next Saturday the second delivery van goes to Madrid
+Metadata,"Data that describe other data: names, types, units, rules","unit_price is a number with two decimals, in euros, greater than zero"
