@@ -1,0 +1,7 @@
+﻿Key,Definition,Example in Mercadillo 505
+Candidate key,"A column, or the smallest group of columns, whose value is different in every row",customers: customer_id; also email
+Primary key,The candidate key chosen to identify the rows; unique and never empty,orders.order_id
+Composite key,A key made of two or more columns,"order_lines (order_id, product_id)"
+Foreign key,A column whose values must exist as primary-key values in another table,orders.customer_id
+Natural key,A key whose value already exists in the business,the order number M505-1041
+Generated key (surrogate key),A key whose value is a meaningless number created by the database,"customer_id 1, 2, 3"

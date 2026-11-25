@@ -1,0 +1,9 @@
+﻿Measure,Wide table,After third normal form
+Tables,1,4
+Rows,6,3 customers + 5 orders + 4 products + 6 order lines
+Times the city of Lucía is stored,3,1
+Times the price of Turrón 300 g is stored,2,1
+Rows to change when Lucía moves,3,1
+Answers to “where does Lucía live?” after a change in one row,2 (Getafe and Madrid),1 (Getafe)
+A new product without any order,cannot be stored,one row in products
+Original lines given back by joining the tables,—,6 of 6

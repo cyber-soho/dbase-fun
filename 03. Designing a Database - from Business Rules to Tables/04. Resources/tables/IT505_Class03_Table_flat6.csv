@@ -1,0 +1,7 @@
+﻿order_id,order_date,customer_name,customer_email,city,product,category,unit_price,quantity
+M505-1041,2026-11-21,Lucía Fernández,lucia.fernandez@example.es,Madrid,Manchego cheese 250 g,Cheese,7.40,2
+M505-1041,2026-11-21,Lucía Fernández,lucia.fernandez@example.es,Madrid,Olive oil 1 L,Oil,9.80,1
+M505-1042,2026-11-21,Javier Ortega,javier.ortega@example.es,Madrid,Turrón 300 g,Sweets,6.90,3
+M505-1043,2026-11-21,Marta Ruiz,marta.ruiz@example.es,Alcalá de Henares,Saffron 1 g,Spices,5.50,4
+M505-1049,2026-11-22,Lucía Fernández,lucia.fernandez@example.es,Madrid,Turrón 300 g,Sweets,6.90,1
+M505-1050,2026-11-22,Javier Ortega,javier.ortega@example.es,Madrid,Saffron 1 g,Spices,5.50,2

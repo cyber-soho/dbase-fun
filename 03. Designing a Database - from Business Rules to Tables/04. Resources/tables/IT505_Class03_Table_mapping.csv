@@ -1,0 +1,5 @@
+﻿Rule,In the diagram,In the tables,Mercadillo 505
+1,Entity; attribute,Table; column,"CUSTOMER → customers(name, email, city)"
+2,Identifier,Primary key,customer_id; order_id; product_id
+3,One-to-many relationship,The primary key of the “one” side is added to the “many” side as a foreign key,orders.customer_id → customers.customer_id
+4,Linking entity,A table with two foreign keys; together they form its primary key,"order_lines(order_id, product_id, quantity)"

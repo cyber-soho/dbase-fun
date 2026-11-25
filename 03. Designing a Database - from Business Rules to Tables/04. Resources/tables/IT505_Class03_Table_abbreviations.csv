@@ -1,0 +1,29 @@
+﻿Abbreviation,Meaning,Note
+1NF,First Normal Form,One value per cell and a key for every row.
+2NF,Second Normal Form,"First normal form, and every non-key column depends on the whole key."
+3NF,Third Normal Form,"Second normal form, and no non-key column depends on another non-key column."
+ACM,Association for Computing Machinery,"The professional society that published the papers of Codd, Chen and Kent."
+AGPL,GNU Affero General Public License,The open-source licence of drawDB.
+APA,American Psychological Association,The citation style required for the sources of the lab reports.
+CSV,Comma-Separated Values,A text file with one record per line and commas between the values.
+DBA,Database Administrator,"The person who builds, protects and tunes the database."
+DBMS,Database Management System,"The software that stores, protects and serves a database: PostgreSQL, MariaDB, SQLite, DuckDB."
+ER,Entity-Relationship,"The model of Peter Chen (1976): entities, attributes and relationships."
+ERD,Entity-Relationship Diagram,"The drawing of an entity-relationship model: rectangles for entities, lines for relationships."
+FK,Foreign Key,A column whose values must exist as primary-key values in another table.
+GDPR,General Data Protection Regulation,Regulation (EU) 2016/679 on the protection of personal data.
+GIF,Graphics Interchange Format,A picture format that can hold a short animation.
+HTML,HyperText Markup Language,The language of web pages; the format of the interactive files of this class.
+IBM,International Business Machines,The company in whose research laboratory Edgar F. Codd wrote the relational model.
+MCQ,Multiple-Choice Question,A question with exactly one right answer.
+MSQ,Multiple-Select Question,A question with several right answers; their number is given in round brackets.
+OLAP,Online Analytical Processing,Few large questions that analyse the recorded business.
+OLTP,Online Transaction Processing,Many small operations that record the daily business.
+PDF,Portable Document Format,The file format of the printable copies.
+PK,Primary Key,The column or columns chosen to identify each row of a table.
+PNG,Portable Network Graphics,A picture stored as pixels without loss.
+SDLC,Systems Development Life Cycle,"The ordered phases of building an information system: plan, analyse, design, implement, maintain."
+SQL,Structured Query Language,"The language used to define, change and query relational data."
+SVG,Scalable Vector Graphics,"A picture stored as shapes, sharp at any size."
+URL,Uniform Resource Locator,The address of a web page.
+XP,experience points,The points collected in the game.

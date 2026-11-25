@@ -1,0 +1,5 @@
+﻿Determinant,Determines,Kind,Removed by,Ends in table
+"(order_id, product)",quantity,full: the whole key,—,order_lines
+order_id,"order_date, customer_email",partial: a part of the key,second normal form,orders
+product,"category, unit_price",partial: a part of the key,second normal form,products
+customer_email,"customer_name, city",transitive: through a non-key column,third normal form,customers

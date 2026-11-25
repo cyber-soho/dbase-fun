@@ -1,0 +1,4 @@
+﻿Normal form,Rule,What breaks it,Repair,Example
+First,One value per cell; a key for every row,"A list in a cell; columns product1, product2, product3",One row per value,One row per order line
+Second,"First, and every non-key column depends on the whole key",A partial dependency (possible only with a composite key),The part of the key and its columns move to their own table,"orders, products, order_lines"
+Third,"Second, and no non-key column depends on another non-key column",A transitive dependency,The determinant and its columns move to their own table,customers separated from orders

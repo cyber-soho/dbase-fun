@@ -1,0 +1,6 @@
+﻿Phase,What is done,Document produced,Mercadillo 505,In this course
+Plan,State the purpose of the database and its limits,Purpose statement,"“Store every order once and correctly, so that the Monday report can be trusted.”","Class 1; Lab 1, Step 0"
+Analyse,Collect the requirements: rules and questions; study the existing data,"Business rules, business questions, problem list",Six rules from the interview; the problem list of the export file,"Class 2 and Class 3, Lesson 1; Lab 1, Steps 1 and 2"
+Design,"Decide the structure in three views: conceptual, logical, physical","Diagram, schema sheet",Four entities; four tables with three foreign keys,"Class 3, Lessons 2 to 4; Lab 1, Step 2"
+Implement,"Create the tables in a DBMS, load the data, test","schema.sql, load.sql, test results",PostgreSQL database mercadillo,"Class 4; Lab 1, Step 3"
+Maintain,"Back up, correct, and change the database as the business changes","Backups, change notes",A new column when the market starts to deliver outside Madrid,Named in Class 4 (backup)

@@ -1,0 +1,7 @@
+﻿order_id,order_date,customer_name,customer_email,city
+M505-1041,2026-11-21,Lucía Fernández,lucia.fernandez@example.es,Madrid
+M505-1042,2026-11-21,Javier Ortega,javier.ortega@example.es,Madrid
+M505-1043,2026-11-21,Marta Ruiz,marta.ruiz@example.es,Alcalá de Henares
+M505-1044,2026-11-21,Pablo Martín,pablo.martin@example.es,Madrid
+M505-1049,2026-11-22,Lucía Fernández,lucia.fernandez@example.es,Madrid
+M505-1050,2026-11-22,Javier Ortega,javier.ortega@example.es,Madrid

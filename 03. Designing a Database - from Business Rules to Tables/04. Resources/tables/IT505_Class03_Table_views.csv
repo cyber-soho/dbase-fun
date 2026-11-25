@@ -1,0 +1,4 @@
+﻿View,Content,Read by,Question it answers,Mercadillo 505 example,When
+Conceptual model,Entities and relationships; no technology,The users of the business,What does the business keep data about?,A customer places zero or more orders,Lesson 2
+Logical model,"Tables, columns, primary and foreign keys; no product",The analyst,How are the data organised?,"orders(order_id, order_date, customer_id → customers)",Lessons 3 and 4
+Physical model,"Data types, indexes, files of one DBMS",The DBA,How does this DBMS store them?,order_id TEXT PRIMARY KEY in PostgreSQL,Class 4

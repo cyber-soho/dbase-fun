@@ -1,0 +1,4 @@
+﻿Kind,Written,Example,In the tables
+One-to-one,1:1,One order has one invoice,"A foreign key on one side, declared unique"
+One-to-many,1:N,One customer places many orders,A foreign key in the table on the “many” side
+Many-to-many,M:N,One order contains many products; one product appears in many orders,A linking table with two foreign keys

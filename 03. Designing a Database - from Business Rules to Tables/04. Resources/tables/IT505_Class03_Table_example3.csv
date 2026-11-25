@@ -1,0 +1,5 @@
+﻿Test,What is attempted,Answer of the database (DuckDB 2.0.1),Guarantee
+1,A second customer with the number 1,"Constraint Error: Duplicate key ""customer_id: 1"" violates primary key constraint.",Entity integrity (primary key)
+2,"An order for customer 99, who does not exist","Constraint Error: Violates foreign key constraint because key ""customer_id: 99"" does not exist in the referenced table",Referential integrity (foreign key)
+3,"Deleting customer 1, who has an order","Constraint Error: Violates foreign key constraint because key ""customer_id: 1"" is still referenced by a foreign key in a different table",Referential integrity (foreign key)
+4,Product 1 a second time in order M505-1041,"Constraint Error: Duplicate key ""order_id: M505-1041, product_id: 1"" violates primary key constraint.",Entity integrity (composite primary key)

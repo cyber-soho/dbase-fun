@@ -1,0 +1,9 @@
+﻿#,Sentence from the interview,Kind,What the analyst does with it
+1,A customer places zero or more orders.,Relationship rule,"CUSTOMER and ORDER are entities; maximum many on the order side, minimum zero"
+2,An order belongs to exactly one customer.,Relationship rule,The same relationship read from the other side: one-to-many
+3,An order contains one or more products.,Relationship rule,PRODUCT is an entity; maximum many on the product side
+4,A product appears in zero or more orders.,Relationship rule,Maximum many on the order side as well: many-to-many
+5,Two customers cannot have the same e-mail address.,Value rule,Kept for Class 4: it becomes a UNIQUE constraint
+6,The quantity of a product in an order must be greater than zero.,Value rule,Kept for Class 4: it becomes a CHECK constraint
+7,An order has products.,Not a rule yet,"Ask the owner: how many products, at least and at most?"
+8,Customers like fast delivery.,Not a rule yet,An opinion about the service; it says nothing about the data

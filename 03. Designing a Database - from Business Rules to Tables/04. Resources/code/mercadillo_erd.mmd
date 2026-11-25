@@ -1,0 +1,50 @@
+%% IT 505 · Class 3 · Example 2 — the entity-relationship diagram of Mercadillo 505 as text. Educational material — Cyber.SoHo / Asen Grozdanov. Fictional data (Mercadillo 505).
+%% Paste the text into the Mermaid Live Editor (https://mermaid.live) or into a ```mermaid block of a Markdown file on GitHub.
+%% The first line names the kind of diagram: an entity-relationship diagram.
+erDiagram
+    %% The entity CUSTOMER and, between the braces, its attributes: one per line, written as type and name.
+    CUSTOMER {
+        %% The identifier of a customer; PK marks the attribute that tells two customers apart.
+        int customer_id PK
+        %% The name of the customer, a text.
+        string name
+        %% The e-mail address, a text.
+        string email
+        %% The city where the customer lives, a text.
+        string city
+    %% The brace closes the entity CUSTOMER.
+    }
+    %% The entity ORDER.
+    ORDER {
+        %% The identifier of an order, for example M505-1041.
+        string order_id PK
+        %% The day on which the order was placed.
+        date order_date
+        %% The state of the order: delivered, shipped, cancelled or returned.
+        string status
+    %% The brace closes the entity ORDER.
+    }
+    %% The entity PRODUCT.
+    PRODUCT {
+        %% The identifier of a product.
+        int product_id PK
+        %% The name of the product.
+        string name
+        %% The price of one unit, a number with two decimal places.
+        decimal unit_price
+    %% The brace closes the entity PRODUCT.
+    }
+    %% One customer places zero or more orders; every order belongs to exactly one customer.
+    CUSTOMER ||--o{ ORDER : places
+    %% First idea, kept as a comment only: an order contains one or more products, and a product appears in zero or more orders. This is a many-to-many relationship, and the quantity has no place in it.
+    %% ORDER }o--|{ PRODUCT : contains
+    %% The solution: a linking entity, ORDER_LINE. One instance is one product inside one order.
+    ORDER_LINE {
+        %% The quantity belongs to the pair (order, product), so it is stored here and nowhere else.
+        int quantity
+    %% The brace closes the entity ORDER_LINE.
+    }
+    %% The many-to-many relationship is replaced by two one-to-many relationships. First: one order contains one or more order lines.
+    ORDER ||--|{ ORDER_LINE : contains
+    %% Second: one product appears in zero or more order lines.
+    PRODUCT ||--o{ ORDER_LINE : "appears in"

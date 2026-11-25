@@ -1,0 +1,6 @@
+﻿Instance,Entity,Connected to,Facts stored
+Lucía Fernández,CUSTOMER,her orders: M505-1041 and M505-1049,"name, e-mail address, city"
+M505-1041,ORDER,exactly one customer; two order lines,"order date, status"
+line 1 of M505-1041,ORDER LINE,one order; the product Manchego cheese 250 g,quantity 2
+line 2 of M505-1041,ORDER LINE,one order; the product Olive oil 1 L,quantity 1
+Manchego cheese 250 g,PRODUCT,every order line that sells it,"name, unit price"

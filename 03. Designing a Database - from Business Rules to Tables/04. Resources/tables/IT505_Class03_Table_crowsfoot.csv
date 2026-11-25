@@ -1,0 +1,5 @@
+﻿Marks at one end,Minimum,Maximum,Read as,In Mermaid text (left / right),Example
+Two bars,1,1,exactly one,||  /  ||,An order belongs to exactly one customer
+Circle and bar,0,1,zero or one,|o  /  o|,A customer was referred by zero or one customer
+Circle and fork,0,many,zero or more,}o  /  o{,A customer places zero or more orders
+Bar and fork,1,many,one or more,}|  /  |{,An order contains one or more order lines

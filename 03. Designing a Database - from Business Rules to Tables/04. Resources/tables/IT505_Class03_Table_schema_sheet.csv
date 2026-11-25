@@ -1,0 +1,14 @@
+﻿Table,Column,Type,Key,Rule
+customers,customer_id,whole number,primary key (generated),
+customers,name,text,,required
+customers,email,text,,"required, unique"
+customers,city,text,,
+products,product_id,whole number,primary key (generated),
+products,name,text,,"required, unique"
+products,unit_price,"exact decimal, 2 places",,required
+orders,order_id,text,primary key (natural),
+orders,order_date,date,,required
+orders,customer_id,whole number,foreign key → customers.customer_id,required
+order_lines,order_id,text,primary key (part 1); foreign key → orders.order_id,required
+order_lines,product_id,whole number,primary key (part 2); foreign key → products.product_id,required
+order_lines,quantity,whole number,,required

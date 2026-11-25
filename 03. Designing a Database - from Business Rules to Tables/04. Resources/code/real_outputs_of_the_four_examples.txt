@@ -1,0 +1,283 @@
+IT 505 · Class 3 — real outputs of the four code examples
+Captured on 25 November 2026. Python 3.13.18 · DuckDB 2.0.1 · SQLite 3.53.1 · PostgreSQL 16.15 · Mermaid 12.3
+
+==============================================================================
+Example 1 — python3 rules_to_inventory.py
+==============================================================================
+1. RELATIONSHIP RULE  CUSTOMER --places (0..many)--> ORDER
+2. RELATIONSHIP RULE  ORDER --belongs to (1..1)--> CUSTOMER
+3. RELATIONSHIP RULE  ORDER --contains (1..many)--> PRODUCT
+4. RELATIONSHIP RULE  PRODUCT --appears in (0..many)--> ORDER
+5. VALUE RULE         Two customers cannot have the same e-mail address.
+6. VALUE RULE         The quantity of a product in an order must be greater than zero.
+7. NOT A RULE YET     An order has products.
+8. NOT A RULE YET     Customers like fast delivery.
+Entities: CUSTOMER, ORDER, PRODUCT
+CUSTOMER – ORDER: one-to-many
+ORDER – PRODUCT: many-to-many
+
+==============================================================================
+Example 2 — mercadillo_erd.mmd
+==============================================================================
+The text was parsed and drawn by Mermaid 12.3 without error; the picture is mercadillo_erd_rendered_by_mermaid.png.
+
+==============================================================================
+Example 3 — keys.sql on DuckDB 2.0.1
+==============================================================================
+-- CREATE TABLE customers (parent)
+   done
+-- CREATE TABLE products (parent)
+   done
+-- CREATE TABLE orders (child of customers)
+   done
+-- CREATE TABLE order_lines (child of orders and of products)
+   done
+-- INSERT three customers
+   done (3 rows)
+-- INSERT three products
+   done (3 rows)
+-- INSERT three orders
+   done (3 rows)
+-- INSERT three order lines
+   done (3 rows)
+-- Test 1 — a second customer number 1
+   ConstraintException: Constraint Error: Duplicate key "customer_id: 1" violates primary key constraint.
+-- Test 2 — an order for customer 99, who does not exist
+   ConstraintException: Constraint Error: Violates foreign key constraint because key "customer_id: 99" does not exist in the referenced table
+-- Test 3 — delete a customer who has an order
+   ConstraintException: Constraint Error: Violates foreign key constraint because key "customer_id: 1" is still referenced by a foreign key in a different table
+-- Test 4 — the same product twice in one order
+   ConstraintException: Constraint Error: Duplicate key "order_id: M505-1041, product_id: 1" violates primary key constraint.
+-- Follow the keys: put the four tables together
+   name | order_id | product | quantity
+   Lucía Fernández | M505-1041 | Manchego cheese 250 g | 2
+   Lucía Fernández | M505-1041 | Olive oil 1 L | 1
+   Javier Ortega | M505-1042 | Turrón 300 g | 3
+
+==============================================================================
+Example 3 — keys.sql on SQLite 3.53.1
+==============================================================================
+-- SQLite only: switch on the checking of foreign keys
+   done
+-- CREATE TABLE customers (parent)
+   done
+-- CREATE TABLE products (parent)
+   done
+-- CREATE TABLE orders (child of customers)
+   done
+-- CREATE TABLE order_lines (child of orders and of products)
+   done
+-- INSERT three customers
+   done (3 rows)
+-- INSERT three products
+   done (3 rows)
+-- INSERT three orders
+   done (3 rows)
+-- INSERT three order lines
+   done (3 rows)
+-- Test 1 — a second customer number 1
+   IntegrityError: UNIQUE constraint failed: customers.customer_id
+-- Test 2 — an order for customer 99, who does not exist
+   IntegrityError: FOREIGN KEY constraint failed
+-- Test 3 — delete a customer who has an order
+   IntegrityError: FOREIGN KEY constraint failed
+-- Test 4 — the same product twice in one order
+   IntegrityError: UNIQUE constraint failed: order_lines.order_id, order_lines.product_id
+-- Follow the keys: put the four tables together
+   name | order_id | product | quantity
+   Lucía Fernández | M505-1041 | Manchego cheese 250 g | 2
+   Lucía Fernández | M505-1041 | Olive oil 1 L | 1
+   Javier Ortega | M505-1042 | Turrón 300 g | 3
+
+==============================================================================
+Example 3 — keys.sql on PostgreSQL 16.15
+==============================================================================
+-- CREATE TABLE customers (parent)
+   CREATE TABLE
+-- CREATE TABLE products (parent)
+   CREATE TABLE
+-- CREATE TABLE orders (child of customers)
+   CREATE TABLE
+-- CREATE TABLE order_lines (child of orders and of products)
+   CREATE TABLE
+-- INSERT three customers
+   INSERT 0 3
+-- INSERT three products
+   INSERT 0 3
+-- INSERT three orders
+   INSERT 0 3
+-- INSERT three order lines
+   INSERT 0 3
+-- Test 1 — a second customer number 1
+   ERROR:  duplicate key value violates unique constraint "customers_pkey"
+   DETAIL:  Key (customer_id)=(1) already exists.
+-- Test 2 — an order for customer 99, who does not exist
+   ERROR:  insert or update on table "orders" violates foreign key constraint "orders_customer_id_fkey"
+   DETAIL:  Key (customer_id)=(99) is not present in table "customers".
+-- Test 3 — delete a customer who has an order
+   ERROR:  update or delete on table "customers" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+   DETAIL:  Key (customer_id)=(1) is still referenced from table "orders".
+-- Test 4 — the same product twice in one order
+   ERROR:  duplicate key value violates unique constraint "order_lines_pkey"
+   DETAIL:  Key (order_id, product_id)=(M505-1041, 1) already exists.
+-- Follow the keys: put the four tables together
+         name       | order_id  |        product        | quantity 
+   -----------------+-----------+-----------------------+----------
+    Lucía Fernández | M505-1041 | Manchego cheese 250 g |        2
+    Lucía Fernández | M505-1041 | Olive oil 1 L         |        1
+    Javier Ortega   | M505-1042 | Turrón 300 g          |        3
+   (3 rows)
+
+==============================================================================
+Example 4 — normalise.sql on DuckDB 2.0.1
+==============================================================================
+-- CREATE the wide table (already in first normal form)
+   done
+-- INSERT six order lines
+   done (6 rows)
+-- Measure the redundancy
+   line_rows | customers | orders | products
+   6 | 3 | 5 | 4
+-- Update anomaly: change the city in one row only
+   done (1 rows)
+-- Where does Lucía live now?
+   customer_name | city
+   Lucía Fernández | Getafe
+   Lucía Fernández | Madrid
+-- Undo the partial change
+   done (1 rows)
+-- Second normal form, step 1: facts that depend on the product alone
+   done (4 rows)
+-- Second normal form, step 2: facts that depend on the order alone
+   done (5 rows)
+-- Second normal form, step 3: the fact that needs the whole key
+   done (6 rows)
+-- What is still repeated?
+   order_id | customer_name | city
+   M505-1042 | Javier Ortega | Madrid
+   M505-1050 | Javier Ortega | Madrid
+   M505-1041 | Lucía Fernández | Madrid
+   M505-1049 | Lucía Fernández | Madrid
+   M505-1043 | Marta Ruiz | Alcalá de Henares
+-- Third normal form, step 1: facts that depend on the customer
+   done (3 rows)
+-- Third normal form, step 2: the order keeps only the link to its customer
+   done (5 rows)
+-- The same change, now in one place
+   done (1 rows)
+-- Where does Lucía live now?
+   customer_name | city
+   Lucía Fernández | Getafe
+-- Nothing was lost: the four tables give back the six lines
+   rebuilt_rows
+   6
+-- How many rows does each table hold?
+   customers | orders | products | order_lines
+   3 | 5 | 4 | 6
+
+==============================================================================
+Example 4 — normalise.sql on SQLite 3.53.1
+==============================================================================
+-- CREATE the wide table (already in first normal form)
+   done
+-- INSERT six order lines
+   done (6 rows)
+-- Measure the redundancy
+   line_rows | customers | orders | products
+   6 | 3 | 5 | 4
+-- Update anomaly: change the city in one row only
+   done (1 rows)
+-- Where does Lucía live now?
+   customer_name | city
+   Lucía Fernández | Getafe
+   Lucía Fernández | Madrid
+-- Undo the partial change
+   done (1 rows)
+-- Second normal form, step 1: facts that depend on the product alone
+   done
+-- Second normal form, step 2: facts that depend on the order alone
+   done
+-- Second normal form, step 3: the fact that needs the whole key
+   done
+-- What is still repeated?
+   order_id | customer_name | city
+   M505-1042 | Javier Ortega | Madrid
+   M505-1050 | Javier Ortega | Madrid
+   M505-1041 | Lucía Fernández | Madrid
+   M505-1049 | Lucía Fernández | Madrid
+   M505-1043 | Marta Ruiz | Alcalá de Henares
+-- Third normal form, step 1: facts that depend on the customer
+   done
+-- Third normal form, step 2: the order keeps only the link to its customer
+   done
+-- The same change, now in one place
+   done (1 rows)
+-- Where does Lucía live now?
+   customer_name | city
+   Lucía Fernández | Getafe
+-- Nothing was lost: the four tables give back the six lines
+   rebuilt_rows
+   6
+-- How many rows does each table hold?
+   customers | orders | products | order_lines
+   3 | 5 | 4 | 6
+
+==============================================================================
+Example 4 — normalise.sql on PostgreSQL 16.15
+==============================================================================
+-- CREATE the wide table (already in first normal form)
+   CREATE TABLE
+-- INSERT six order lines
+   INSERT 0 6
+-- Measure the redundancy
+    line_rows | customers | orders | products 
+   -----------+-----------+--------+----------
+            6 |         3 |      5 |        4
+   (1 row)
+-- Update anomaly: change the city in one row only
+   UPDATE 1
+-- Where does Lucía live now?
+     customer_name  |  city  
+   -----------------+--------
+    Lucía Fernández | Getafe
+    Lucía Fernández | Madrid
+   (2 rows)
+-- Undo the partial change
+   UPDATE 1
+-- Second normal form, step 1: facts that depend on the product alone
+   SELECT 4
+-- Second normal form, step 2: facts that depend on the order alone
+   SELECT 5
+-- Second normal form, step 3: the fact that needs the whole key
+   SELECT 6
+-- What is still repeated?
+    order_id  |  customer_name  |       city        
+   -----------+-----------------+-------------------
+    M505-1042 | Javier Ortega   | Madrid
+    M505-1050 | Javier Ortega   | Madrid
+    M505-1041 | Lucía Fernández | Madrid
+    M505-1049 | Lucía Fernández | Madrid
+    M505-1043 | Marta Ruiz      | Alcalá de Henares
+   (5 rows)
+-- Third normal form, step 1: facts that depend on the customer
+   SELECT 3
+-- Third normal form, step 2: the order keeps only the link to its customer
+   SELECT 5
+-- The same change, now in one place
+   UPDATE 1
+-- Where does Lucía live now?
+     customer_name  |  city  
+   -----------------+--------
+    Lucía Fernández | Getafe
+   (1 row)
+-- Nothing was lost: the four tables give back the six lines
+    rebuilt_rows 
+   --------------
+               6
+   (1 row)
+-- How many rows does each table hold?
+    customers | orders | products | order_lines 
+   -----------+--------+----------+-------------
+            3 |      5 |        4 |           6
+   (1 row)
+

@@ -1,0 +1,4 @@
+﻿Anomaly,Definition,In the wide table,After third normal form
+Update,A change must be made in several rows,The city of Lucía is in 3 rows,1 row in customers
+Insert,A fact cannot be stored until another fact exists,A new product has no row until it is ordered,1 row in products
+Delete,Removing one fact removes another,Deleting order M505-1043 removes Marta Ruiz,Marta stays in customers
