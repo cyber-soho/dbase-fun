@@ -1,0 +1,7 @@
+﻿"Real result (10,004,480 lines)",CSV,Parquet
+File size,"1,716.7 MB",37.8 MB
+“How many lines from Madrid?”,1.5 s,0.015 s
+Answer,"4,613,120","4,613,120"
+Columns read for this question,All 14 (the whole text),1 (city)
+Types stored in the file,No — guessed when read,Yes
+Open it in a text editor,Yes,No — needs a tool

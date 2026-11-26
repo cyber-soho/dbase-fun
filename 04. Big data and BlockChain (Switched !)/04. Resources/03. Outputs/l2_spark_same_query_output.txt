@@ -1,0 +1,12 @@
+# Real output recorded on Wednesday 25 November 2026 (DuckDB 2.0.1 · Python 3.13 · Apache Spark 4.3.0 with OpenJDK 21 · a 2-core Linux machine).
+# Paths shortened; nothing else changed.
+
+Spark version: 4.3.0
+== Physical Plan ==
+*(1) Filter (isnotnull(city#5) AND (city#5 = Madrid))
++- *(1) ColumnarToRow
+   +- FileScan parquet [line_id#0,order_id#1,order_date#2,customer_name#3,customer_email#4,city#5,referred_by#6,product#7,category#8,producer#9,unit_price#10,quantity#11L,payment_method#12,status#13] Batched: true, DataFilters: [isnotnull(city#5), (city#5 = Madrid)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/home/student/lab2/orders_big.parquet], PartitionFilters: [], PushedFilters: [IsNotNull(city), EqualTo(city,Madrid)], ReadSchema: struct<line_id:string,order_id:string,order_date:string,customer_name:string,customer_email:strin...
+
+
+Madrid lines (DataFrame): 4613120 in 2.23 s
+Madrid lines (Spark SQL): 4613120 in 0.74 s

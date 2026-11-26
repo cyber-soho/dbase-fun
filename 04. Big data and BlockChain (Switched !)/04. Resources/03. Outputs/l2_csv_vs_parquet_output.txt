@@ -1,0 +1,74 @@
+# Real output recorded on Wednesday 25 November 2026 (DuckDB 2.0.1 · Python 3.13 · Apache Spark 4.3.0 with OpenJDK 21 · a 2-core Linux machine).
+# Paths shortened; nothing else changed.
+
+D CREATE OR REPLACE TABLE orders AS SELECT * FROM read_csv('mercadillo505_orders_flat.csv', ignore_errors = true);
+│ Count │
+├───────┤
+│ 1,954 │
+(0.033 s)
+
+D SELECT COUNT(*) AS lines_in_starter_file FROM orders;
+│ lines_in_starter_file │
+├───────────────────────┤
+│                 1,954 │
+(0.003 s)
+
+D CREATE OR REPLACE TABLE orders_big AS
+  SELECT o.order_id || '-' || r.range AS line_id, o.*
+  FROM orders AS o CROSS JOIN range(5120) AS r;
+│ Count      │
+├────────────┤
+│ 10,004,480 │
+(3.784 s)
+
+D SELECT COUNT(*) AS lines_now FROM orders_big;
+│ lines_now  │
+├────────────┤
+│ 10,004,480 │
+(0.002 s)
+
+D COPY orders_big TO 'orders_big.csv' (HEADER true, DELIMITER ',');
+│ Count      │
+├────────────┤
+│ 10,004,480 │
+(4.427 s)
+
+D COPY orders_big TO 'orders_big.parquet' (FORMAT parquet);
+│ Count      │
+├────────────┤
+│ 10,004,480 │
+(4.099 s)
+
+D SELECT filename, round(size / 1e6, 1) AS megabytes FROM read_blob('orders_big.*') ORDER BY size DESC;
+│ filename           │ megabytes │
+├────────────────────┼───────────┤
+│ orders_big.csv     │    1716.7 │
+│ orders_big.parquet │      37.8 │
+(0.003 s)
+
+D SELECT COUNT(*) AS madrid_lines FROM 'orders_big.csv' WHERE city = 'Madrid';
+│ madrid_lines │
+├──────────────┤
+│    4,613,120 │
+(1.513 s)
+
+D SELECT COUNT(*) AS madrid_lines FROM 'orders_big.parquet' WHERE city = 'Madrid';
+│ madrid_lines │
+├──────────────┤
+│    4,613,120 │
+(0.023 s)
+
+D SELECT row_group_id, path_in_schema AS column_name, stats_min_value AS smallest, stats_max_value AS largest, num_values
+  FROM parquet_metadata('orders_big.parquet') WHERE path_in_schema = 'unit_price' AND row_group_id < 3;
+│ row_group_id │ column_name │ smallest │ largest │ num_values │
+├──────────────┼─────────────┼──────────┼─────────┼────────────┤
+│            0 │ unit_price  │ 2.8      │ 11.5    │    122,880 │
+│            1 │ unit_price  │ 2.8      │ 11.5    │    122,880 │
+│            2 │ unit_price  │ 2.8      │ 11.5    │    122,880 │
+(0.015 s)
+
+D SELECT COUNT(*) AS lines_above_20_euros FROM 'orders_big.parquet' WHERE unit_price > 20;
+│ lines_above_20_euros │
+├──────────────────────┤
+│                    0 │
+(0.008 s)

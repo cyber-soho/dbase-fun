@@ -1,0 +1,13 @@
+# Real output recorded on Wednesday 25 November 2026 (DuckDB 2.0.1 · Python 3.13 · Apache Spark 4.3.0 with OpenJDK 21 · a 2-core Linux machine).
+# Paths shortened; nothing else changed.
+
+== MAP on machine A (Fri 20 Nov) -> [('Madrid', 1), ('Getafe', 1), ('Madrid', 1), ('Móstoles', 1), ('Madrid', 1), ('Alcalá de Henares', 1)]
+== MAP on machine B (Sat 21 Nov) -> [('Madrid', 1), ('Leganés', 1), ('Madrid', 1), ('Móstoles', 1), ('Alcalá de Henares', 1), ('Madrid', 1)]
+== MAP on machine C (Sun 22 Nov) -> [('Getafe', 1), ('Madrid', 1), ('Leganés', 1), ('Móstoles', 1), ('Madrid', 1), ('Getafe', 1)]
+== SHUFFLE to Reducer 1 (A-L) -> {'Getafe': [1, 1, 1], 'Alcalá de Henares': [1, 1], 'Leganés': [1, 1]}
+== REDUCE on Reducer 1 (A-L) -> {'Getafe': 3, 'Alcalá de Henares': 2, 'Leganés': 2}
+== SHUFFLE to Reducer 2 (M-Z) -> {'Madrid': [1, 1, 1, 1, 1, 1, 1, 1], 'Móstoles': [1, 1, 1]}
+== REDUCE on Reducer 2 (M-Z) -> {'Madrid': 8, 'Móstoles': 3}
+== RESULT orders per city: {'Madrid': 8, 'Getafe': 3, 'Móstoles': 3, 'Alcalá de Henares': 2, 'Leganés': 2}
+== CHECK total = 18 orders; read = 18
+== WITHOUT CLEANING: 12 different spellings -> {'Madrid': 5, 'Getafe': 2, 'MADRID': 1, 'Móstoles': 2, 'alcala de henares': 1, 'madrid': 1, 'Leganés': 1, 'mostoles': 1, 'Alcalá de Henares': 1, ' Madrid': 1, 'leganes': 1, 'GETAFE': 1}

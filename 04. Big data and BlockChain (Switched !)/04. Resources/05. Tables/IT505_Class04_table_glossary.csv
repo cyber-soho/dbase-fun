@@ -1,0 +1,73 @@
+﻿Lesson,Subtopic,Term,Definition
+1,The five Vs,Big data,"Data whose volume, velocity or variety makes one computer and the usual tools too small or too slow."
+1,The five Vs,Volume,"How much data there is (bytes, rows, files)."
+1,The five Vs,Velocity,How fast data arrives and how fast an answer is needed.
+1,The five Vs,Variety,"How many forms the data takes: tables, JSON documents, text, images."
+1,The five Vs,Veracity,How trustworthy and clean the data is.
+1,The five Vs,Value,What the organization gains from analysing the data.
+1,When one machine is no longer enough,Scaling up (vertical scaling),"Making one machine bigger: more memory, more cores, faster disks."
+1,When one machine is no longer enough,Scaling out (horizontal scaling),Adding more machines that share the work.
+1,When one machine is no longer enough,Cluster,A group of computers connected by a network that work as one system.
+1,When one machine is no longer enough,Node,One computer in a cluster.
+1,"Split the work, process the pieces, combine the answers",Partition,One piece of a dataset that can be processed on its own.
+1,"Split the work, process the pieces, combine the answers",Parallel processing,Several processors working on different pieces at the same time.
+1,"Split the work, process the pieces, combine the answers",Distributed processing,Parallel processing on separate computers connected by a network.
+1,"Split the work, process the pieces, combine the answers",Data locality,"Running the computation where the data already is, instead of moving the data."
+1,MapReduce in one picture,MapReduce,"A pattern for distributed processing in three phases: map, shuffle, reduce."
+1,MapReduce in one picture,Map,"Each machine turns its own records into (key, value) pairs."
+1,MapReduce in one picture,Shuffle,Pairs with the same key are sent to the same machine.
+1,MapReduce in one picture,Reduce,"Each machine combines the values of each key, for example by adding them."
+1,MapReduce in one picture,Key–value pair,Two linked items: a key that groups (the city) and a value to combine (1).
+1,Running the business or analysing it: OLTP and OLAP,OLTP,Many short operations that read and change a few rows each (running the business).
+1,Running the business or analysing it: OLTP and OLAP,OLAP,Few long queries that read many rows and few columns (analysing the business).
+2,"Parquet: data stored by column, compressed, with statistics",Row-oriented storage,"The values of one row are stored next to each other (CSV, the tables of PostgreSQL)."
+2,"Parquet: data stored by column, compressed, with statistics",Columnar storage,The values of one column are stored next to each other.
+2,"Parquet: data stored by column, compressed, with statistics",Apache Parquet,"An open, column-oriented file format for analytical data."
+2,"Parquet: data stored by column, compressed, with statistics",Row group,A block of rows inside a Parquet file; each column of it is stored separately.
+2,"Parquet: data stored by column, compressed, with statistics",Column chunk,The data of one column inside one row group.
+2,"Parquet: data stored by column, compressed, with statistics",Footer statistics,"Minimum, maximum and number of nulls per column chunk, stored at the end of the file."
+2,"Parquet: data stored by column, compressed, with statistics",Dictionary encoding,Each distinct value is stored once; rows store a small code that points to it.
+2,"Parquet: data stored by column, compressed, with statistics",Run-length encoding,"A value repeated many times in a row is stored once, with the number of repeats."
+2,CSV or Parquet: size and speed,Column pruning,Reading only the columns a query needs.
+2,CSV or Parquet: size and speed,Row-group skipping,Using footer statistics to skip blocks of rows that cannot contain matching rows.
+2,Apache Spark: data frames and Spark SQL — your SQL still works,Apache Spark,An open-source engine that processes data in parallel on one machine or a cluster.
+2,Apache Spark: data frames and Spark SQL — your SQL still works,Data frame,A table of rows and named columns; in Spark it is split into partitions.
+2,Apache Spark: data frames and Spark SQL — your SQL still works,Driver,The Spark program that plans the work and sends tasks to the executors.
+2,Apache Spark: data frames and Spark SQL — your SQL still works,Executor,A worker process on a node that runs tasks on partitions of the data.
+2,Lazy evaluation: Spark plans first and computes later,Transformation (Spark),"An instruction that describes a new data frame without computing it (filter, select, join)."
+2,Lazy evaluation: Spark plans first and computes later,Action (Spark),"An instruction that forces computation (count, collect, write)."
+2,Lazy evaluation: Spark plans first and computes later,Lazy evaluation,"Computing only when an action needs the result, after the whole plan is known."
+2,Lazy evaluation: Spark plans first and computes later,Predicate pushdown,Sending a filter down to the file reader so less data is read.
+2,Choosing the engine: one laptop or many machines,Single-machine engine,An engine that uses all cores of one computer (DuckDB).
+2,Choosing the engine: one laptop or many machines,Cluster engine,An engine that spreads work over many computers (Spark).
+3,"A ledger: records are added, never changed",Ledger,"An ordered record of transactions, where each new entry follows the last one."
+3,"A ledger: records are added, never changed",Append-only,New records are added at the end; existing records are never changed or deleted.
+3,"A hash: a short, fixed-length value computed from data",Hash function,A function that maps data of any length to a fixed-length value.
+3,"A hash: a short, fixed-length value computed from data",Hash (digest),The fixed-length result of a hash function; 64 hexadecimal characters for SHA-256.
+3,"A hash: a short, fixed-length value computed from data",SHA-256,The hash function standardised by NIST in FIPS 180-4; 256-bit result.
+3,"A hash: a short, fixed-length value computed from data",Deterministic,The same input always produces the same output.
+3,"A hash: a short, fixed-length value computed from data",Avalanche effect,A tiny change in the input produces a completely different hash.
+3,"A hash: a short, fixed-length value computed from data",One-way,The input cannot be calculated back from the hash.
+3,"A hash: a short, fixed-length value computed from data",Collision resistance,Finding two different inputs with the same hash is practically impossible.
+3,Blocks chained by their hashes: change one and you break the rest,Block,A group of records together with the hash of the previous block.
+3,Blocks chained by their hashes: change one and you break the rest,Genesis block,The first block of a chain; it has no previous block.
+3,Blocks chained by their hashes: change one and you break the rest,Hash chain,A sequence of blocks in which each block stores the hash of the one before it.
+3,Blocks chained by their hashes: change one and you break the rest,Tamper-evident,Changes cannot be hidden from someone who checks (not the same as impossible to change).
+3,Many copies and no single owner,Distributed ledger (DLT),A ledger copied and kept in step by many independent participants.
+3,Many copies and no single owner,Node (blockchain),A participant's computer that keeps a full copy of the chain and checks new blocks.
+3,"The price: speed, storage, energy — and privacy",GDPR,The EU regulation on personal data; it includes a right to erasure.
+3,"The price: speed, storage, energy — and privacy",Right to erasure,"A person's right to have their personal data deleted, under conditions set by the GDPR."
+4,Agreeing without a central authority: proof of work and proof of stake,Consensus,The procedure by which nodes agree on the next block.
+4,Agreeing without a central authority: proof of work and proof of stake,Proof of work (PoW),Consensus by expensive computation: find a nonce that gives a hash with leading zeros.
+4,Agreeing without a central authority: proof of work and proof of stake,Nonce,A number changed again and again until the block's hash meets the target.
+4,Agreeing without a central authority: proof of work and proof of stake,Mining,The search for a valid nonce in proof of work.
+4,Agreeing without a central authority: proof of work and proof of stake,Proof of stake (PoS),Consensus by deposit: validators lock coins and lose part of them if they cheat.
+4,Agreeing without a central authority: proof of work and proof of stake,Validator,A participant chosen to propose or check blocks in proof of stake.
+4,"Public and permissioned chains: Bitcoin, Ethereum, Hyperledger Fabric",Permissionless blockchain,"Anyone may join, read and write (subject to consensus): Bitcoin, Ethereum."
+4,"Public and permissioned chains: Bitcoin, Ethereum, Hyperledger Fabric",Permissioned blockchain,Only approved participants may write; reading may be public or private.
+4,"Public and permissioned chains: Bitcoin, Ethereum, Hyperledger Fabric",Hyperledger Fabric,An open-source permissioned blockchain platform for business networks (LF Decentralized Trust).
+4,Smart contracts: programs stored on the ledger,Smart contract,A program stored on a blockchain that runs automatically when its conditions are met.
+4,Smart contracts: programs stored on the ledger,Chaincode,Hyperledger Fabric's name for a smart contract.
+4,Blockchain or database: one comparison table,Trusted third party (TTP),An organization that all participants accept as keeper of the records.
+4,The decision flowchart: do you need a blockchain?,Public verifiability,People outside the group of writers can check the records themselves.
+4,The decision flowchart: do you need a blockchain?,Decision flowchart,"Six yes/no questions that end in “no blockchain”, permissionless, public permissioned or private permissioned."

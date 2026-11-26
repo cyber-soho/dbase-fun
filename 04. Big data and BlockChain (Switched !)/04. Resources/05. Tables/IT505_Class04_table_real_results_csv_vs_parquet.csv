@@ -1,0 +1,12 @@
+﻿Measure,Value,How
+Lines in the starter file (after skipping 1 malformed line),"1,954",DuckDB read_csv(ignore_errors = true)
+"Lines after 5,120 copies","10,004,480",CROSS JOIN range(5120)
+Size as CSV (MB),1716.7,read_blob()
+"Size as Parquet, Snappy (MB)",37.8,read_blob()
+Parquet is smaller by,45 ×,CSV size ÷ Parquet size
+Madrid lines from CSV — median of 3 runs (s),1.499,"4,613,120 lines"
+Madrid lines from Parquet — median of 3 runs (s),0.015,"4,613,120 lines"
+Parquet is faster by,100 ×,CSV time ÷ Parquet time
+Row groups in the Parquet file,82,parquet_metadata()
+"Spark 4.3.0, Madrid lines, data frame, first action (s)",2.23,"same 4,613,120 lines"
+"Spark 4.3.0, Madrid lines, Spark SQL (s)",0.74,"same 4,613,120 lines"

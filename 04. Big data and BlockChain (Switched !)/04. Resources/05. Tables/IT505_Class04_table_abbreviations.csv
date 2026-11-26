@@ -1,0 +1,33 @@
+﻿Abbreviation,Meaning
+CSV,Comma-Separated Values
+SQL,Structured Query Language
+OLTP,Online Transaction Processing
+OLAP,Online Analytical Processing
+CPU,Central Processing Unit
+RAM,Random-Access Memory
+SSD,Solid-State Drive
+NIST,National Institute of Standards and Technology
+FIPS,Federal Information Processing Standard
+SHA-256,Secure Hash Algorithm with a 256-bit result
+HDFS,Hadoop Distributed File System
+ASF,Apache Software Foundation
+JSON,JavaScript Object Notation
+PoW,proof of work
+PoS,proof of stake
+TTP,trusted third party
+DLT,distributed ledger technology
+GDPR,General Data Protection Regulation
+EDPB,European Data Protection Board
+BFT,Byzantine fault tolerance
+LTS,long-term support
+ID,identifier
+GB,"gigabyte, 1,000,000,000 bytes"
+MB,"megabyte, 1,000,000 bytes"
+TB,"terabyte, 1,000 gigabytes"
+KB,"kilobyte, 1,000 bytes"
+IoT,Internet of Things
+DBMS,Database Management System
+LF,Linux Foundation
+PDF,Portable Document Format
+APA,American Psychological Association
+UTC,Coordinated Universal Time

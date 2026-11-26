@@ -1,0 +1,18 @@
+# Real output recorded on Wednesday 25 November 2026 (DuckDB 2.0.1 · Python 3.13 · Apache Spark 4.3.0 with OpenJDK 21 · a 2-core Linux machine).
+# Paths shortened; nothing else changed.
+
+block text: block 7|prev=4d7fee7ea62d|M505-1047|2026-11-22|C-058|Polvorones, box of 12|2|10.40
+format: sha256(block + '|nonce=' + n)
+
+1 zero(s): 9 attempts, nonce 8, 0.000 s
+   080b82c315951e1c5ebf4400aba7fad959f248b2569be59ec0532880e0a3e9ad
+2 zero(s): 85 attempts, nonce 84, 0.000 s
+   00232f7b7e336357da47980b9be6fc30086bbccad1bb4f5b3fdf008e80b1bc24
+3 zero(s): 12,152 attempts, nonce 12151, 0.007 s
+   00098eb47d97c1885a3513257ee38e1c84188cac5fbac59363ce8c2d74aaab53
+4 zero(s): 24,729 attempts, nonce 24728, 0.014 s
+   0000999e14f622f1e9b6a7536cfd85625088c028535b3ec64904a52031e8d17d
+5 zero(s): 1,856,823 attempts, nonce 1856822, 0.946 s
+   0000055b256cab7bb0d7c26c14d80b8ab82ae5aba758072bedee35c2bb155d21
+6 zero(s): 24,162,037 attempts, nonce 24162036, 12.810 s
+   000000ea5f03ecba76b2ad8a42be6ffa0ac739f32b23c6b01dd6da89b4cbb771

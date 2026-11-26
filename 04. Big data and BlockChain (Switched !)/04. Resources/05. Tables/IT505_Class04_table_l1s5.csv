@@ -1,0 +1,7 @@
+﻿,OLTP — running the business,OLAP — analysing the business
+Typical operation,"Place an order, update the stock",Revenue per city per month
+Rows touched,A few,Millions
+Columns read,All columns of those rows,Two or three columns
+Expected time,Milliseconds,Seconds are fine
+Storage that suits it,Row by row,Column by column
+In this course,PostgreSQL (Monday),DuckDB and Spark (today)

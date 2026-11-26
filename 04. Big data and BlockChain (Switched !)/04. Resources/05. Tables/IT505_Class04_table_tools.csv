@@ -1,0 +1,6 @@
+﻿Tool,Licence,Use today,Official site
+DuckDB 2.0.1,MIT,Make the data big; CSV versus Parquet; sha256(),https://duckdb.org/
+DBeaver Community,Apache 2.0,One window for DuckDB (and PostgreSQL on Monday),https://dbeaver.io/
+"Python 3 (hashlib, csv)",PSF License,Hash chain and MapReduce examples,https://www.python.org/
+Apache Spark 4.3.0 / PySpark,Apache 2.0,Professor demonstration (needs Java 17 or newer),https://spark.apache.org/
+Apache Parquet,Apache 2.0,The columnar file format,https://parquet.apache.org/

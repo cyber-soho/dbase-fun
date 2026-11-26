@@ -1,0 +1,8 @@
+﻿Question,Database,Blockchain
+Who writes?,One organization (or many users of one organization),Several organizations
+Who is trusted?,The organization that runs it,Nobody alone; the rules and the majority
+Speed of a write,Milliseconds,Seconds to minutes
+Correcting data,"UPDATE, DELETE",New correcting records only
+Privacy,Access rights inside one system,Data copied to every node
+Cost to run,Low,"High (nodes, consensus, energy)"
+Typical use at Mercadillo 505,"Orders, stock, customers, loyalty points",A record shared with partners who do not trust one keeper

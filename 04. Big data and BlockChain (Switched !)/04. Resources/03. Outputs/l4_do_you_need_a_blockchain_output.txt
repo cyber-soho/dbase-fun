@@ -1,0 +1,23 @@
+# Real output recorded on Wednesday 25 November 2026 (DuckDB 2.0.1 · Python 3.13 · Apache Spark 4.3.0 with OpenJDK 21 · a 2-core Linux machine).
+# Paths shortened; nothing else changed.
+
+== Proposal 1 Loyalty points on a blockchain
+    Q1 Do you need to store data that changes over time? -> yes
+    Q2 Are there several parties who write records? -> no
+    VERDICT: No blockchain: use a database (for example PostgreSQL)
+== Proposal 2 Shared delivery hand-over log
+    Q1 Do you need to store data that changes over time? -> yes
+    Q2 Are there several parties who write records? -> yes
+    Q3 Can you use an always-online trusted third party? -> no
+    Q4 Are all writers known? -> yes
+    Q5 Are all writers trusted? -> no
+    Q6 Is public verifiability required? -> no
+    VERDICT: Private permissioned blockchain (known writers, members verify)
+== Proposal 3 Origin certificates shoppers can check
+    Q1 Do you need to store data that changes over time? -> yes
+    Q2 Are there several parties who write records? -> yes
+    Q3 Can you use an always-online trusted third party? -> no
+    Q4 Are all writers known? -> yes
+    Q5 Are all writers trusted? -> no
+    Q6 Is public verifiability required? -> yes
+    VERDICT: Public permissioned blockchain (known writers, anyone may verify)

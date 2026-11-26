@@ -1,0 +1,6 @@
+﻿,Database (PostgreSQL),Blockchain
+Time to record a change,Milliseconds,Seconds to minutes
+Who keeps the data,One organization,Every node keeps a full copy
+Correcting a mistake,UPDATE or DELETE,A new correcting record
+Personal data and erasure,Possible (DELETE),Avoid writing it on the chain
+Energy,Low,Depends on the consensus method

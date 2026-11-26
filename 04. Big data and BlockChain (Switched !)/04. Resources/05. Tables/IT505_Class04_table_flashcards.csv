@@ -1,0 +1,21 @@
+﻿Lesson,Front,Back
+1,The five Vs of big data,"Volume, velocity, variety, veracity, value."
+1,Veracity — an example from our starter file,"Madrid typed as “Madrid”, “MADRID” and “madrid”: the data cannot be trusted as it is."
+1,Scaling up versus scaling out,Up: a bigger machine. Out: more machines working together in a cluster.
+1,The three phases of MapReduce,"Map (records → key–value pairs), shuffle (same key → same machine), reduce (combine the values of each key)."
+1,OLTP versus OLAP,OLTP runs the business with many short operations on few rows; OLAP analyses it with long queries over many rows and few columns.
+2,Row-oriented versus columnar storage,Row-oriented keeps the values of one row together (CSV); columnar keeps the values of one column together (Parquet).
+2,What is inside a Parquet file?,"Row groups, each made of one column chunk per column, and a footer with the schema and statistics (min, max, nulls)."
+2,Four reasons Parquet answered faster,"It read one column, read fewer (compressed) bytes, parsed no text, and skipped row groups using statistics."
+2,Transformation versus action in Spark,"A transformation (filter, select) only extends the plan; an action (count, write) makes Spark compute."
+2,DuckDB or Spark?,"Data that fits on one machine: DuckDB. Data or work too big for one machine, or shared by many teams: Spark."
+3,Ledger and append-only,"A ledger is an ordered record of transactions; append-only means records are only added at the end, never changed."
+3,What does SHA-256 return?,"A 256-bit value, written as 64 hexadecimal characters, always the same length whatever the input."
+3,Avalanche effect,A tiny change in the input (Madrid → madrid) gives a completely different hash.
+3,Why does a change in block 3 break block 4?,"Block 4 stores the hash of block 3; a changed block 3 has a new hash, so block 4's stored value no longer matches."
+3,Tamper-evident is not tamper-proof,"The data can still be changed, but the change cannot be hidden from someone who checks the chain."
+4,Consensus,The procedure by which the nodes of a blockchain agree on the next block.
+4,Proof of work in one idea,"Find a nonce that gives the block's hash a required number of leading zeros: hard to find, easy to check."
+4,Proof of stake in one idea,Validators lock a deposit (stake); they are chosen to propose blocks and lose part of the stake if they cheat.
+4,Permissionless versus permissioned,Permissionless: anyone may write (Bitcoin). Permissioned: only approved organizations write (Hyperledger Fabric).
+4,Smart contract,"A program stored on a blockchain that runs automatically, the same way on every node, when its condition is met."
